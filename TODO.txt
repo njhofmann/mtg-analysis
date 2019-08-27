@@ -1,0 +1,3 @@
+-Add links to all readme mentions
+-Add specific versions of each dependency to readme and requirements
+-Download and set up postgres server
