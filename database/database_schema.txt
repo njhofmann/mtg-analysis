@@ -1,25 +1,27 @@
 CREATE TYPE format AS ENUM (
-    "standard",
-    "modern",
-    "legacy"
-)
+    'standard',
+    'modern',
+    'legacy'
+);
 
 CREATE TABLE TournamentInfo (
     name TEXT,
     format FORMAT,
     date DATE,
-    PRIMARY KEY (name, format)
-)
+    url TEXT,
+    PRIMARY KEY (name)
+);
 
 CREATE TABLE TournamentEntry (
     tournament TEXT,
     archetype TEXT,
     place INTEGER,
     name TEXT,
-    player TEXT
+    player TEXT,
+    url TEXT,
     PRIMARY KEY (tournament, archetype, place),
-    FOREIGN KEY (tournament) REFERENCES TournamentInfo(name)
-)
+    FOREIGN KEY (tournament) REFERENCES TournamentInfo (name)
+);
 
 CREATE TABLE EntryCard (
     tournament TEXT,
@@ -27,9 +29,9 @@ CREATE TABLE EntryCard (
     place INTEGER,
     card INTEGER,
     mainboard BOOLEAN,
-    quantity INTEGER
-    PRIMARY KEY (tournament, archetype, place, card, mainboard)
+    quantity INTEGER,
+    PRIMARY KEY (tournament, archetype, place, card, mainboard),
     FOREIGN KEY (tournament) REFERENCES TournamentInfo(name),
-    FOREIGN KEY (tournament, archetype, place) REFERENCES TournamentInfo(tournament, archetype, place)
-)
+    FOREIGN KEY (tournament, archetype, place) REFERENCES TournamentEntry(tournament, archetype, place)
+);
 

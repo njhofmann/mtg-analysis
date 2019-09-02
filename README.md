@@ -24,6 +24,7 @@ Data analysis and modeling of competitive level play and card prices for Magic: 
 # 3D Party Libraries
 * Data stored with [Postgres 11.5](https://www.postgresql.org/)
 * Database interfacing with [psycopg2 2.3.8](https://pypi.org/project/psycopg2/).
+* Web scrapping done with [Requests](https://2.python-requests.org/en/master/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).
 
 # Data Acknowledgements
 * Tournament data drawn from [mtgtop8.com](mtgtop8.com).

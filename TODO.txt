@@ -1,3 +1,4 @@
--Add links to all readme mentions
+-Figure out why psycopg2 doesn't close connections
+-Implement scrappers: mtgtop8, financal data?
+    -mtgtop8: parse tournament page, store related urls, traverse list
 -Add specific versions of each dependency to readme and requirements
--Download and set up postgres server
