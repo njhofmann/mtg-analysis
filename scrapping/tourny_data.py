@@ -1,3 +1,4 @@
+"""Module for pulling tournament data from mtgtop8.com"""
 import requests
 import bs4
 import re
@@ -7,7 +8,6 @@ def retrieve_and_parse(url):
     soup = bs4.BeautifulSoup(markup=url_data.text, features='html.parser')
 
     # get all modern tournaments
-    a = soup.
     a = soup.find_all(href=re.compile('event\?e=[0-9]+&f=MO'))
     for b in a:
         print(b)

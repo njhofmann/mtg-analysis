@@ -13,28 +13,24 @@ def create_new_db(db_name, init_file, user='postgres'):
     :return: None
     """
     # create connection, set isolation level to create db, and create cursor
-    con = psycopg2.connect(user=user)
-    con.autocommit = True
-    cursor = con.cursor()
-
-    # delete database if it exists, create new one from init file
-    cursor.execute(sql.SQL('DROP DATABASE IF EXISTS {}').format(sql.Identifier(db_name)))
-    cursor.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(db_name)))
-
-    con.commit()
-    con.close()
+    with psycopg2.connect(user=user) as con:
+        con.autocommit = True
+        with con.cursor() as cursor:
+            # delete database if it exists, create new one from init file
+            cursor.execute(sql.SQL('DROP DATABASE IF EXISTS {}').format(sql.Identifier(db_name)))
+            cursor.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(db_name)))
+            con.commit()
 
     # open connection to new database and insert schema
-    con = psycopg2.connect(user=user, dbname=db_name)
-    cursor = con.cursor()
+    with psycopg2.connect(user=user, dbname=db_name) as con:
+        cursor = con.cursor()
+        with open(init_file) as init:
+            schema = ''.join([line.strip() for line in init.readlines()])
+            cursor.execute(schema)
+            con.commit()
 
-    with open(init_file) as init:
-        schema = ''.join([line.strip() for line in init.readlines()])
-    cursor.execute(schema)
-
-    con.commit()
-    con.close()
     sys.exit()  # why does this have to be here
+
 
 if __name__ == '__main__':
     create_new_db('mtg_analysis', 'database_schema.txt')
