@@ -1,5 +1,5 @@
--Figure out why psycopg2 doesn't close connections
--Implement scrappers: mtgtop8, financal data?
-    -mtgtop8: parse tournament page, store related urls, traverse list
-    -figure out what PageSubmit function is doing, recreate functionality in code and traverse
+-What info is needed from tcgplayer
+-What card info to get from scryfall
+-mtgtop8: parse tournament page and placement pages
+-How to sheet
 -Add specific versions of each dependency to readme and requirements

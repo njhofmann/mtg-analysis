@@ -23,11 +23,11 @@ def create_new_db(db_name, init_file, user='postgres'):
 
     # open connection to new database and insert schema
     with psycopg2.connect(user=user, dbname=db_name) as con:
-        cursor = con.cursor()
-        with open(init_file) as init:
-            schema = ''.join([line.strip() for line in init.readlines()])
-            cursor.execute(schema)
-            con.commit()
+        with con.cursor() as cursor:
+            with open(init_file) as init:
+                schema = ''.join([line.strip() for line in init.readlines()])
+                cursor.execute(schema)
+                con.commit()
 
     sys.exit()  # why does this have to be here
 
