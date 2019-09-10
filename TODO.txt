@@ -1,5 +1,13 @@
--What info is needed from tcgplayer
--What card info to get from scryfall
--mtgtop8: parse tournament page and placement pages
+-Tcgplayer
+  -How far back to draw data from
+  -How often to get data
+-Scryfall
+  -What card info to get
+  -What db tables to add
+-mtgtop8 parser
+  -parse tournament page and placement pages
+  -random sleep timer
+  -multithreading - why or why not, justify
+  -
 -How to sheet
 -Add specific versions of each dependency to readme and requirements
