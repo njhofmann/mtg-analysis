@@ -16,6 +16,8 @@ def create_new_db(db_name, init_file, user='postgres'):
     with psycopg2.connect(user=user) as con:
         con.autocommit = True
         with con.cursor() as cursor:
+            # remove all other active sessions
+
             # delete database if it exists, create new one from init file
             cursor.execute(sql.SQL('DROP DATABASE IF EXISTS {}').format(sql.Identifier(db_name)))
             cursor.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(db_name)))
@@ -28,8 +30,6 @@ def create_new_db(db_name, init_file, user='postgres'):
                 schema = ''.join([line.strip() for line in init.readlines()])
                 cursor.execute(schema)
                 con.commit()
-
-    sys.exit()  # why does this have to be here
 
 
 if __name__ == '__main__':

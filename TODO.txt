@@ -5,8 +5,10 @@
   -What card info to get
   -What db tables to add
 -mtgtop8 parser
-  -parse tournament page and placement pages
-  -random sleep timer
+  -logging
+  -break into helper functions
+  -combine list comprehensions / turn into functions
+  -record last major events
   -multithreading - why or why not, justify
   -
 -How to sheet

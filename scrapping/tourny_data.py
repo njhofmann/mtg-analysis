@@ -10,6 +10,7 @@ import time
 # regex constants
 EVENT_URL_REGEX = re.compile('event\?e=[0-9]+&f=[A-Z]+')
 DECK_URL_REGEX = re.compile('\?e=[0-9]+&d=[0-9]+&f=[A-Z]+')
+DECK_ARCHETYPE_REGEX = re.compile('archetype?\?a=[0-9]+')
 
 
 def get_and_wait(url, data=None):
@@ -40,7 +41,7 @@ def retrieve_and_parse(url, format, database, user='postgres'):
     :param user: login username for given database
     :return: None
     """
-    base_url = re.match('.*.com/', url)
+    base_url = re.match('.*.com/', url).group()
     page = 1
     min_event_count = 5
     with psycopg2.connect(user=user, dbname=database) as con:
@@ -52,24 +53,41 @@ def retrieve_and_parse(url, format, database, user='postgres'):
                 parents = soup.find_all(class_='hover_tr')  # combine parent.find() into lambda
                 events = [parent for parent in parents if parent.find(href=EVENT_URL_REGEX)]
 
+                print(len(events))
+                normal_events = []  # parse out events in last major events column
+                for parent in events:
+                    if parent.previous_siblings is None:
+                        normal_events.append(parent)
+                    else:
+                        print([(str(i), type(i)) for i in parent.previous_siblings])
+                        print(['class="w_title"' in str(sibling)
+                                                      and 'Last major events' in str(sibling)
+                                                      for sibling in parent.previous_siblings])
+                        major_event_header = any(['class="w_title"' in str(sibling)
+                                                      and 'Last major events' in str(sibling)
+                                                      for sibling in parent.previous_siblings])
+                        if not major_event_header:
+                            normal_events.append(parent)
+                print(len(normal_events))
+
                 # empty pages means final page has been reached
                 if len(events) < min_event_count:
                     break
 
-                for event in events:
+                for event in normal_events:
                     event_info = event.find(href=EVENT_URL_REGEX)
                     event_url = base_url + event_info['href']
                     event_name = event_info.get_text()
                     event_date = event.find(class_='S10').get_text()
                     insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}) VALUES (%s, %s, %s, %s)').format(
-                        sql.Identifier('TournamentInfo'), sql.Identifier('name'), sql.Identifier('format'),
-                        sql.Identifier('date'), sql.Identifier('date'))
+                        sql.Identifier('tournament_info'), sql.Identifier('name'), sql.Identifier('format'),
+                        sql.Identifier('date'), sql.Identifier('url'))
                     cursor.execute(insert_query, (event_name, format, event_date, event_url))
-                    parse_event(event_name, event_url, cursor)
+                    parse_event(event_name, event_date, event_url, base_url, cursor)
                     page += 1
 
 
-def parse_event(event_name, event_url, base_url, db_cursor):
+def parse_event(event_name, event_date, event_url, base_url, db_cursor):
     """
     Given the url of a tournament on mtgtop8.com, pulls all decks that placed in the tournament and enters them into
     the database of the given database cursor. Pulls player of each placement, the info of the deck they played, etc.
@@ -84,14 +102,15 @@ def parse_event(event_name, event_url, base_url, db_cursor):
     deck_parents = [parent for parent in possible_parents if parent.find(href=DECK_URL_REGEX)]
 
     for parent in deck_parents:
-        child_deck_tag = deck_parents.find(href=DECK_URL_REGEX)
+        child_deck_tag = parent.find(href=DECK_URL_REGEX)
         deck_url = base_url + 'event' + child_deck_tag['href']
         deck_name = child_deck_tag.get_text()
         deck_rank = parent.find(class_='S14').get_text()
-        parse_event(event_name, deck_url, deck_name, deck_rank, db_cursor)
+        player_name = parent.find(class_='G11').get_text()
+        parse_entry(event_name, event_date, deck_url, deck_name, deck_rank, player_name, db_cursor)
 
 
-def parse_entry(event_name, placement_url, deck_name, deck_placement, db_cursor):
+def parse_entry(event_name, event_date, placement_url, deck_name, deck_placement, player_name, db_cursor):
     """
     Given the url to a tournament placement on mtgtop8.com, pull the ranked deck's info in the database of the given
     database cursor. Info such as played cards, card quantities, player name, ranking, etc.
@@ -100,10 +119,44 @@ def parse_entry(event_name, placement_url, deck_name, deck_placement, db_cursor)
     :param deck_name:
     :param deck_placement:
     :param db_cursor:
+    :return: None
+    """
+    url_data = get_and_wait(placement_url)
+    deck_archetype = url_data.find(href=DECK_ARCHETYPE_REGEX).get_text()
+
+    insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}, {}, {}, {}) VALUES (%s, %s, %s, %s, %s, %s, %s)').format(
+        sql.Identifier('tournament_entry'), sql.Identifier('date'), sql.Identifier('archetype'), sql.Identifier('place'),
+        sql.Identifier('name'), sql.Identifier('player'), sql.Identifier('url'))
+    db_cursor.execute(insert_query, (event_name, event_date, deck_archetype, deck_placement, deck_name, player_name, placement_url))
+
+    cards = url_data.find_all(class_='G14')
+    for card in cards:
+        # check if in sideboard
+        in_mainboard = is_in_mainboard(card)
+        quantity = card.find(class_='hover_tr').get_text()  # may be string like '3-4'
+        card_name = card.find(class_='L14').get_text()
+        insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}, {}, {}, {}, {}) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)').format(
+            sql.Identifier('entry_card'), sql.Identifier('tournament'), sql.Identifier('date'), sql.Identifier('archetype'),
+            sql.Identifier('place'), sql.Identifier('player'), sql.Identifier('card'), sql.Identifier('quantity'),
+            sql.Identifier('mainboard'))
+        db_cursor.execute(insert_query,
+                          (event_name, event_date, deck_archetype, deck_placement, deck_name, player_name, card,
+                           quantity, str(in_mainboard)))
+
+
+def is_in_mainboard(card):
+    """
+
+    :param card:
     :return:
     """
-    pass
-
+    for prev_sib in card.previous_siblings:
+        has_class = prev_sib.find(class_='O13')
+        if has_class is not None:
+            title = has_class.get_text().lower()
+            if 'sideboard' in title:
+                return False
+    return True
 
 
 if __name__ == '__main__':
