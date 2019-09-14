@@ -6,35 +6,32 @@ CREATE TYPE format AS ENUM (
 
 CREATE TABLE tournament_info (
     name TEXT,
-    format FORMAT,
     date DATE,
-    url TEXT,
+    format FORMAT NOT NULL,
+    url TEXT NOT NULL,
     PRIMARY KEY (name, date)
 );
 
 CREATE TABLE tournament_entry (
-    tournament TEXT,
-    date DATE,
-    archetype TEXT,
-    place TEXT,
-    name TEXT,
-    player TEXT,
-    url TEXT,
-    PRIMARY KEY (tournament, date, archetype, place, player),
+    entry_id SERIAL PRIMARY KEY,
+    tournament TEXT NOT NULL,
+    date DATE NOT NULL,
+    archetype TEXT NOT NULL,
+    place TEXT NOT NULL,
+    player TEXT NOT NULL,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    UNIQUE (tournament, date, archetype, place, player),
     FOREIGN KEY (tournament, date) REFERENCES tournament_info (name, date)
 );
 
-CREATE TABLE EntryCard (
-    tournament TEXT,
-    date DATE,
-    archetype TEXT,
-    place TEXT,
-    player TEXT,
+CREATE TABLE entry_card (
+    entry_id INTEGER,
     card TEXT,
-    quantity INTEGER,
     mainboard BOOLEAN,
-    PRIMARY KEY (tournament, date, archetype, place, card, mainboard),
-    FOREIGN KEY (tournament, date) REFERENCES tournament_info(name, date),
-    FOREIGN KEY (tournament, date, archetype, place, player) REFERENCES tournament_entry(tournament, date, archetype, place, player)
+    quantity INTEGER NOT NULL,
+    CONSTRAINT positive_quantity CHECK (quantity > 0),
+    PRIMARY KEY (entry_id, card, mainboard),
+    FOREIGN KEY (entry_id) REFERENCES tournament_entry(entry_id)
 );
 

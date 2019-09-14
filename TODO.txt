@@ -5,7 +5,7 @@
   -What card info to get
   -What db tables to add
 -mtgtop8 parser
-  -logging
+  -add logger
   -break into helper functions
   -combine list comprehensions / turn into functions
   -record last major events
