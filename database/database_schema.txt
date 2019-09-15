@@ -5,33 +5,37 @@ CREATE TYPE format AS ENUM (
 );
 
 CREATE TABLE tournament_info (
-    name TEXT,
-    date DATE,
+    tourny_id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    date DATE NOT NULL,
     format FORMAT NOT NULL,
+    /* may not be recorded */
+    size INTEGER,
     url TEXT NOT NULL,
-    PRIMARY KEY (name, date)
+    /* entirely possible to have tournaments with same name on same day in same format */
+    UNIQUE (name, date, format, url)
 );
 
 CREATE TABLE tournament_entry (
-    entry_id SERIAL PRIMARY KEY,
-    tournament TEXT NOT NULL,
-    date DATE NOT NULL,
+    tourny_id INTEGER NOT NULL,
+    entry_id SERIAL,
     archetype TEXT NOT NULL,
     place TEXT NOT NULL,
     player TEXT NOT NULL,
-    name TEXT NOT NULL,
+    deck_name TEXT NOT NULL,
     url TEXT NOT NULL,
-    UNIQUE (tournament, date, archetype, place, player),
-    FOREIGN KEY (tournament, date) REFERENCES tournament_info (name, date)
+    PRIMARY KEY (entry_id),
+    UNIQUE (tourny_id, archetype, place, player),
+    FOREIGN KEY (tourny_id) REFERENCES tournament_info (tourny_id)
 );
 
 CREATE TABLE entry_card (
-    entry_id INTEGER,
-    card TEXT,
-    mainboard BOOLEAN,
+    entry_id INTEGER NOT NULL,
+    card TEXT NOT NULL,
+    mainboard BOOLEAN NOT NULL,
     quantity INTEGER NOT NULL,
     CONSTRAINT positive_quantity CHECK (quantity > 0),
     PRIMARY KEY (entry_id, card, mainboard),
-    FOREIGN KEY (entry_id) REFERENCES tournament_entry(entry_id)
+    FOREIGN KEY (entry_id) REFERENCES tournament_entry (entry_id)
 );
 
