@@ -5,11 +5,10 @@
   -What card info to get
   -What db tables to add
 -mtgtop8 parser
-  -add logger
-  -break into helper functions
   -combine list comprehensions / turn into functions
+  -documentation
   -record last major events
   -multithreading - why or why not, justify
-  -
+  -error handling for webpage exceptions
 -How to sheet
 -Add specific versions of each dependency to readme and requirements
