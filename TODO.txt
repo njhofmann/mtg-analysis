@@ -5,6 +5,7 @@
   -What card info to get
   -What db tables to add
 -mtgtop8 parser
+  -ethical webscrapping
   -drop existing active users
   -combine list comprehensions / turn into functions
   -documentation

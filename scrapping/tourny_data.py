@@ -63,9 +63,9 @@ def format_date(date):
 def get_size(event):
     possible_texts = event.find_all(class_='S14')
     for text in possible_texts:
-        size = EVENT_SIZE_REGEX.match(text.get_text())
+        size = EVENT_SIZE_REGEX.search(text.get_text())
         if size:  # is not None
-            return int(size.group())
+            return int(size.group().split(' ')[0])
     return None
 
 
@@ -107,10 +107,15 @@ def get_tournament_info_id(event_name, event_date, event_format, event_url, db_c
     tourny_id_query = sql.SQL('SELECT {} FROM {} WHERE {} = %s AND {} = %s AND {} = %s AND {} = %s').format(
         sql.Identifier('tourny_id'), sql.Identifier('tournament_info'), sql.Identifier('name'), sql.Identifier('date'),
         sql.Identifier('format'), sql.Identifier('url'))
-    print(tourny_id_query, (event_name, event_date, event_format, event_url))
     db_cursor.execute(tourny_id_query, (event_name, event_date, event_format, event_url))
-    print(tourny_id_query)
     return int(db_cursor.fetchone()[0])
+
+
+def update_tournament_info_size(tourny_id, size, db_cursor, logger):
+    update_query = sql.SQL('UPDATE {} SET {} = %s WHERE {} = %s').format(
+        sql.Identifier('tournament_info'), sql.Identifier('size'), sql.Identifier('tourny_id'))
+    db_cursor.execute(update_query, (size, tourny_id))
+    logger.info('Updating size for tournament {} to size {}'.format(tourny_id, size))
 
 
 def insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, player_name, deck_name,
@@ -172,7 +177,7 @@ def retrieve_and_parse(search_url, url_format, database, user='postgres'):
     logger = init_logging()
     base_url = re.match('.*.com/', search_url).group()
     page = 1
-    min_event_count = 5
+    min_event_count = 1
     with psycopg2.connect(user=user, dbname=database) as con:
         con.autocommit = True
         with con.cursor() as cursor:
@@ -195,39 +200,41 @@ def retrieve_and_parse(search_url, url_format, database, user='postgres'):
                             normal_events.append(parent)
 
                 # empty pages means final page has been reached
-                if len(events) < min_event_count:
+                if len(events) < 1:
                     break
 
+                logger.info('Fetching for page {} in format {} from url {}'.format(page, url_format, search_url))
                 for event in normal_events:
-                    logger.info('Fetching for page {}'.format(page))
-                    page += 1
-
                     event_info = event.find(href=EVENT_URL_REGEX)
                     event_url = base_url + event_info['href']
                     event_name = event_info.get_text()
                     logger.info('Fetching event {} from {}'.format(event_name, event_url))
-                    size = get_size(event)
+                    size = None
                     event_date = format_date(event.find(class_='S10').get_text())
                     insert_into_tournament_info(event_name, event_date, url_format, size, event_url, cursor, logger)
                     tourny_id = get_tournament_info_id(event_name, event_date, url_format, event_url, cursor)
-                    parse_event(tourny_id, event_name, event_date, event_url, base_url, cursor, logger)
+                    parse_event(tourny_id, event_url, base_url, cursor, logger)
+                page += 1
 
 
-def parse_event(tourny_id, event_name, event_date, event_url, base_url, db_cursor, logger):
+def parse_event(tourny_id, event_url, base_url, db_cursor, logger):
     """
     Given the search_url of a tournament on mtgtop8.com, pulls all decks that placed in the tournament and enters them into
     the database of the given database cursor. Pulls player of each placement, the info of the deck they played, etc.
-    :param event_name:
-    :param event_date:
+    :param tourny_id:
     :param event_url:
     :param base_url:
     :param db_cursor:
     :param logger:
     :return:
     """
-    soup = get_and_wait(event_url)
-    possible_parents = soup.find_all(class_=lambda tag: tag in ('chosen_tr', 'hover_tr'))
+    url_data = get_and_wait(event_url)
+    possible_parents = url_data.find_all(class_=lambda tag: tag in ('chosen_tr', 'hover_tr'))
     deck_parents = [parent for parent in possible_parents if parent.find(href=DECK_URL_REGEX)]
+
+    size = get_size(url_data)
+    if size:
+        update_tournament_info_size(tourny_id, size, db_cursor, logger)
 
     for parent in deck_parents:
         child_deck_tag = parent.find(href=DECK_URL_REGEX)
@@ -241,34 +248,39 @@ def parse_event(tourny_id, event_name, event_date, event_url, base_url, db_curso
 
 def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name, db_cursor, logger):
     """
-    Given the search_url to a tournament placement on mtgtop8.com, pull the ranked deck's info in the database of the given
-    database cursor. Info such as played cards, card quantities, player name, ranking, etc.
-    :param event_name:
-    :param placement_url:
-    :param deck_name:
-    :param deck_placement:
-    :param db_cursor:
+    Given the url to a deck placement for a tournament on mtgtop8.com, pull the ranked deck's info in the database of
+    the given database cursor. Info such as played cards, card quantities, player name, ranking, etc.
+    :param tourny_id: id of the tournament the deck was entered in
+    :param placement_url: url containing ranked deck info
+    :param deck_name: name of the deck
+    :param deck_placement: rank of the deck in the associated tournament
+    :param player_name: name of deck's pilot
+    :param db_cursor: cursor of database info will be entered into
+    :param logger: logger to log status of scrapping
     :return: None
     """
     url_data = get_and_wait(placement_url)
 
+    # attempt to find archetype, if not just give deck name
     deck_archetype = url_data.find(href=DECK_ARCHETYPE_REGEX)
     if deck_archetype is None:
         deck_archetype = deck_name
     else:
         deck_archetype = deck_archetype.get_text()
 
+    # insert deck specific info (ie not card info)
     insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, player_name, deck_name, placement_url,
                                  db_cursor, logger)
 
+    # get unique id for entered deck, to use for entering
     entry_id = get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_name, db_cursor)
 
+    # find all cards apart of the deck
     cards = url_data.find_all(class_='G14')
     for card in cards:
-        # check if in sideboard
         card_name = card.find(class_='L14').get_text()
         logger.info('Fetching card {} from {}'.format(card_name, placement_url))
-        in_mainboard = str(card_in_mainboard(card))
+        in_mainboard = str(card_in_mainboard(card))  # check in sideboard
         quantity = int(card.find(class_='hover_tr').get_text().split(' ')[0])  # TODO clean up
         insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_cursor, logger)
 
