@@ -1,14 +1,14 @@
 -Tcgplayer
   -How far back to draw data from
-  -How often to get data
+  -How often to get data: everyday, every week, etc.
 -Scryfall
-  -What card info to get
-  -What db tables to add
+  -Set up script based on cards in db
 -mtgtop8 parser
   -ethical webscrapping
   -drop existing active users
   -combine list comprehensions / turn into functions
   -documentation
+  -have scraper record where it last left off
   -record last major events
   -multithreading - why or why not, justify
   -error handling for webpage exceptions

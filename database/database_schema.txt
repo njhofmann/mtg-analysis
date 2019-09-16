@@ -39,3 +39,57 @@ CREATE TABLE entry_card (
     FOREIGN KEY (entry_id) REFERENCES tournament_entry (entry_id)
 );
 
+CREATE TABLE pricing (
+    card TEXT,
+    set TEXT,
+    date DATE, -- date time?
+    price FLOAT
+    PRIMARY KEY (card, set, date)
+);
+
+CREATE TYPE color AS ENUM (
+    'w', -- white
+    'u', -- blue
+    'b', -- black
+    'r', -- red
+    'g', -- green
+    'c' -- colorless
+);
+
+CREATE TABLE card_color (
+    card TEXT,
+    color COLOR,
+    PRIMARY KEY (card, color)
+);
+
+CREATE TABLE card_type (
+    card TEXT,
+    type TEXT,
+    PRIMARY KEY (card, type)
+);
+
+CREATE TABLE card_cmc (
+    card TEXT PRIMARY KEY,
+    cmc INTEGER NOT NULL,
+    CONSTRAINT positive_quantity CHECK (cmc >= 0),
+);
+
+CREATE TABLE card_pt (
+    card TEXT PRIMARY KEY,
+    power INTEGER NOT NULL,
+    toughness INTEGER NOT NULL
+);
+
+CREATE TABLE card_text (
+    card TEXT PRIMARY KEY,
+    text TEXT NOT NULL
+);
+
+CREATE TABLE set_info (
+    set TEXT PRIMARY KEY,
+    full_name TEXT NOT NULL,
+    release DATE NOT NULL,
+    size INTEGER NOT NULL
+);
+
+
