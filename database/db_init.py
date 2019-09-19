@@ -17,11 +17,14 @@ def create_new_db(db_name, init_file, user='postgres'):
         con.autocommit = True
         with con.cursor() as cursor:
             # remove all other active sessions
+            remove_query = sql.SQL('SELECT pg_terminate_backend(pg_stat_activity.pid) '
+                                   'FROM pg_stat_activity WHERE pg_stat_activity.datname = {}  pg_backend_pid()'.
+                                   format(sql.Identifier(db_name)))
+            cursor.execute(remove_query)
 
             # delete database if it exists, create new one from init file
             cursor.execute(sql.SQL('DROP DATABASE IF EXISTS {}').format(sql.Identifier(db_name)))
             cursor.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(db_name)))
-            con.commit()
 
     # open connection to new database and insert schema
     with psycopg2.connect(user=user, dbname=db_name) as con:

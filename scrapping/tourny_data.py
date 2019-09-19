@@ -21,6 +21,10 @@ DECK_ARCHETYPE_REGEX = re.compile('archetype?\?a=[0-9]+')
 
 
 def init_logging():
+    """
+    Initializes a logger set to lowest informative level (info) for printing message to console and a logging file.
+    :return: logger that can write to stream and a log file
+    """
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
 
@@ -28,6 +32,7 @@ def init_logging():
         formatter = logging.Formatter('%(asctime)s: %(message)s')
         channel.setFormatter(formatter)
         logger.addHandler(channel)
+
     init_channel(logging.StreamHandler())
     init_channel(logging.FileHandler('mtgtop8_scrapper.log', mode='w'))
     return logger
@@ -35,26 +40,26 @@ def init_logging():
 
 def get_and_wait(url, data=None):
     """
-    Retrieves the data from the given search_url and returns a BeautifulSoup parser on the HTML the search_url response returns. Puts
+    Retrieves the data from the given url and returns a BeautifulSoup parser on the HTML the url response returns. Puts
     the thread to sleep for a random amount of seconds after retrieval to ensure that server being requested from isn't
-    overwhelmed and that scrapping looks less conspicuous.
-    :param url: search_url to fetch data from
-    :param data: data to send with search_url, if desired
+    overwhelmed and that scrapping appears less conspicuous.
+    :param url: url to fetch data from
+    :param data: any additional data to send with search_url, treats as a post request if included
     :return: HTML BeautifulSoup parser on the HTML text the request on search_url returns
     """
     if data:
         url_data = requests.post(url=url, data=data)
     else:
         url_data = requests.get(url=url)
-    time.sleep(random.randint(2, 7))
+    time.sleep(random.randint(1, 4))
     return bs4.BeautifulSoup(markup=url_data.text, features='html.parser')
 
 
 def format_date(date):
     """
     Formats a 'dd/mm/yyyy' date into a 'mm/dd/yyyy'.
-    :param date:
-    :return:
+    :param date: give date to format
+    :return: formatted date
     """
     parsed_date = datetime.datetime.strptime(date, '%d/%m/%y')
     return parsed_date.strftime('%m/%d/%Y')
@@ -67,7 +72,6 @@ def get_size(event):
         if size:  # is not None
             return int(size.group().split(' ')[0])
     return None
-
 
 
 def get_entry_rank(parent_elements):
@@ -93,6 +97,17 @@ def card_in_mainboard(card):
 
 
 def insert_into_tournament_info(event_name, event_date, event_format, size, event_url, db_cursor, logger):
+    """
+    Inserts info for a tournament into the cursor of the given database.
+    :param event_name: name of tournament
+    :param event_date: date tournament was held
+    :param event_format: format tournament was played in
+    :param size: how many players were in the tournament
+    :param event_url: url from which tournament info was pulled from
+    :param db_cursor: cursor of the database where info will be pushed
+    :param logger: logger by which info will be logged
+    :return: None
+    """
     def insert_query_func():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}, {}) VALUES (%s, %s, %s, %s, %s)').format(
             sql.Identifier('tournament_info'), sql.Identifier('name'), sql.Identifier('date'), sql.Identifier('format'),
@@ -104,6 +119,15 @@ def insert_into_tournament_info(event_name, event_date, event_format, size, even
 
 
 def get_tournament_info_id(event_name, event_date, event_format, event_url, db_cursor):
+    """
+
+    :param event_name:
+    :param event_date:
+    :param event_format:
+    :param event_url:
+    :param db_cursor:
+    :return:
+    """
     tourny_id_query = sql.SQL('SELECT {} FROM {} WHERE {} = %s AND {} = %s AND {} = %s AND {} = %s').format(
         sql.Identifier('tourny_id'), sql.Identifier('tournament_info'), sql.Identifier('name'), sql.Identifier('date'),
         sql.Identifier('format'), sql.Identifier('url'))
@@ -112,6 +136,14 @@ def get_tournament_info_id(event_name, event_date, event_format, event_url, db_c
 
 
 def update_tournament_info_size(tourny_id, size, db_cursor, logger):
+    """
+    Updates the size of the tournament with the given unique ID in the database associated with the given cursor.
+    :param tourny_id: id of the event in the database
+    :param size: new size to set of given tournament
+    :param db_cursor: cursor of database where tournament info resides
+    :param logger: logger to log info with
+    :return: None
+    """
     update_query = sql.SQL('UPDATE {} SET {} = %s WHERE {} = %s').format(
         sql.Identifier('tournament_info'), sql.Identifier('size'), sql.Identifier('tourny_id'))
     db_cursor.execute(update_query, (size, tourny_id))
@@ -120,6 +152,18 @@ def update_tournament_info_size(tourny_id, size, db_cursor, logger):
 
 def insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, player_name, deck_name,
                                  placement_url, db_cursor, logger):
+    """
+
+    :param tourny_id:
+    :param deck_archetype:
+    :param deck_placement:
+    :param player_name:
+    :param deck_name:
+    :param placement_url:
+    :param db_cursor:
+    :param logger:
+    :return:
+    """
     def insert_query_func():
         insert_query = sql.SQL(
             'INSERT INTO {} ({}, {}, {}, {}, {}, {}) VALUES (%s, %s, %s, %s, %s, %s)').format(
@@ -134,6 +178,15 @@ def insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, play
 
 
 def get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_name, db_cursor):
+    """
+
+    :param tourny_id:
+    :param deck_archetype:
+    :param deck_placement:
+    :param player_name:
+    :param db_cursor:
+    :return:
+    """
     entry_id_query = sql.SQL('SELECT {} FROM {} WHERE {} = %s AND {} = %s AND {} = %s AND {} = %s').format(
         sql.Identifier('entry_id'), sql.Identifier('tournament_entry'), sql.Identifier('tourny_id'),
         sql.Identifier('archetype'), sql.Identifier('place'), sql.Identifier('player'))
@@ -142,6 +195,16 @@ def get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_na
 
 
 def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_cursor, logger):
+    """
+
+    :param entry_id:
+    :param card_name:
+    :param in_mainboard:
+    :param quantity:
+    :param db_cursor:
+    :param logger:
+    :return:
+    """
     def insert_query_func():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}) VALUES (%s, %s, %s, %s)').format(
             sql.Identifier('entry_card'), sql.Identifier('entry_id'), sql.Identifier('card'),
@@ -154,6 +217,15 @@ def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_curso
 
 
 def execute_query_pass_on_unique_violation(query_func, logger, warning_msg):
+    """
+    Wrapper function to execute around SQL insert queries functions being handled with psycopg2. If insert query would
+    insert a entry with a primary key or unique key already in the database, catches the error psycopg2 would throw
+    instead logging the duplicate insertion attempt withe given logger and warning message at level of warning.
+    :param query_func: function to execute the inserts some data into a database with psycopg2
+    :param logger: logger to log given warning message to in case of unique violation error
+    :param warning_msg: warning message to log if unique ivolation error is caught, specific to given query function
+    :return: None
+    """
     try:
         query_func()
     except psycopg2.IntegrityError as e:
@@ -163,12 +235,12 @@ def execute_query_pass_on_unique_violation(query_func, logger, warning_msg):
             raise e
 
 
-def retrieve_and_parse(search_url, url_format, database, user='postgres'):
+def retrieve_and_parse(search_url, url_format, page, database, user='postgres'):
     """
     Given a url to a url_format webpage on mtgtop8.com, pulls all tournaments and their related placement info and loads
     them into the given Postgres database. Pulls all tournament info, placements in each tournament, cards played in
     each placement, etc.
-    :param search_url:
+    :param search_url: main url page to parse
     :param url_format: format being queried
     :param database: name of Postgres database
     :param user: login username for given database
@@ -176,7 +248,6 @@ def retrieve_and_parse(search_url, url_format, database, user='postgres'):
     """
     logger = init_logging()
     base_url = re.match('.*.com/', search_url).group()
-    page = 1
     min_event_count = 1
     with psycopg2.connect(user=user, dbname=database) as con:
         con.autocommit = True
@@ -199,9 +270,9 @@ def retrieve_and_parse(search_url, url_format, database, user='postgres'):
                         if not major_event_header:
                             normal_events.append(parent)
 
-                # empty pages means final page has been reached
-                if len(events) < 1:
-                    break
+                # empty pages == final page has been reached
+                if len(normal_events) < 1:
+                    return
 
                 logger.info('Fetching for page {} in format {} from url {}'.format(page, url_format, search_url))
                 for event in normal_events:
@@ -220,13 +291,14 @@ def retrieve_and_parse(search_url, url_format, database, user='postgres'):
 def parse_event(tourny_id, event_url, base_url, db_cursor, logger):
     """
     Given the search_url of a tournament on mtgtop8.com, pulls all decks that placed in the tournament and enters them into
-    the database of the given database cursor. Pulls player of each placement, the info of the deck they played, etc.
-    :param tourny_id:
-    :param event_url:
-    :param base_url:
-    :param db_cursor:
-    :param logger:
-    :return:
+    into the database of the given database cursor. Pulls player of each placement, the info of the deck they played,
+    etc.
+    :param tourny_id: if of event to parse
+    :param event_url: url of the event to parse
+    :param base_url: base url to combine with parsed deck entry urls
+    :param db_cursor: cursor of the database to insert info in
+    :param logger: logger to log info with
+    :return: None
     """
     url_data = get_and_wait(event_url)
     possible_parents = url_data.find_all(class_=lambda tag: tag in ('chosen_tr', 'hover_tr'))
@@ -286,8 +358,8 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
 
 
 if __name__ == '__main__':
-    urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern'),
-                        ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy'),
-                        ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard')]
-    for url, url_format in urls_and_formats:
-        retrieve_and_parse(url, url_format, 'mtg_analysis')
+    urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 700),
+                        ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 9),
+                        ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 1)]
+    for url, url_format, page in urls_and_formats:
+        retrieve_and_parse(url, url_format, page, 'mtg_analysis')
