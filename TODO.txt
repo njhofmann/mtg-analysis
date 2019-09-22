@@ -7,8 +7,14 @@
   -ethical webscrapping
   -combine list comprehensions / turn into functions
   -documentation
-  -record last major events
+  -separate into modules, separate parsing logic out
+  -stop parsing for duplicate event, entry
+  -parsing tests
+  -stop parsing if empty event
   -multithreading - why or why not, justify
   -error handling for webpage exceptions
+-DB Schemas
+  -Table desps how?
+  -add schemas
 -How to sheet
 -Add specific versions of each dependency to readme and requirements
