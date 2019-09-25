@@ -1,6 +1,8 @@
 from psycopg2 import sql
 import psycopg2
 
+"""Module for inserting tournament data from mtgtop8.com."""
+
 # psycopg2 constants
 PSYCOPG2_UNIQUE_VIOLATION_CODE = 23505
 

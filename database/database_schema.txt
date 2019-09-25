@@ -1,11 +1,17 @@
-CREATE TYPE format AS ENUM (
+CREATE SCHEMA cards;
+
+CREATE SCHEMA events;
+
+CREATE SCHEMA prices;
+
+CREATE TYPE events.format AS ENUM (
     'standard',
     'modern',
     'legacy'
 );
 
-CREATE TABLE tournament_info (
-    tourny_id SERIAL PRIMARY KEY,
+CREATE TABLE events.event_info (
+    event_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     date DATE NOT NULL,
     format FORMAT NOT NULL,
@@ -16,8 +22,8 @@ CREATE TABLE tournament_info (
     UNIQUE (name, date, format, url)
 );
 
-CREATE TABLE tournament_entry (
-    tourny_id INTEGER NOT NULL,
+CREATE TABLE events.event_entry (
+    event_id INTEGER NOT NULL,
     entry_id SERIAL,
     archetype TEXT NOT NULL,
     place TEXT NOT NULL,
@@ -29,17 +35,17 @@ CREATE TABLE tournament_entry (
     FOREIGN KEY (tourny_id) REFERENCES tournament_info (tourny_id)
 );
 
-CREATE TABLE entry_card (
+CREATE TABLE events.entry_card (
     entry_id INTEGER NOT NULL,
     card TEXT NOT NULL,
     mainboard BOOLEAN NOT NULL,
     quantity INTEGER NOT NULL,
     CONSTRAINT positive_quantity CHECK (quantity > 0),
     PRIMARY KEY (entry_id, card, mainboard),
-    FOREIGN KEY (entry_id) REFERENCES tournament_entry (entry_id)
+    FOREIGN KEY (entry_id) REFERENCES event_ (entry_id)
 );
 
-CREATE TABLE pricing (
+CREATE TABLE prices.pricing (
     card TEXT,
     set TEXT,
     date DATE, -- date time?
@@ -47,7 +53,7 @@ CREATE TABLE pricing (
     PRIMARY KEY (card, set, date)
 );
 
-CREATE TYPE color AS ENUM (
+CREATE TYPE cards.color AS ENUM (
     'w', -- white
     'u', -- blue
     'b', -- black
@@ -56,40 +62,42 @@ CREATE TYPE color AS ENUM (
     'c' -- colorless
 );
 
-CREATE TABLE card_color (
+CREATE TABLE cards.card_color (
     card TEXT,
     color COLOR,
     PRIMARY KEY (card, color)
 );
 
-CREATE TABLE card_type (
+CREATE TABLE cards.card_type (
     card TEXT,
     type TEXT,
     PRIMARY KEY (card, type)
 );
 
-CREATE TABLE card_cmc (
+CREATE TABLE cards.card_cmc (
     card TEXT PRIMARY KEY,
     cmc INTEGER NOT NULL,
     CONSTRAINT positive_quantity CHECK (cmc >= 0),
 );
 
-CREATE TABLE card_pt (
+CREATE TABLE cards.card_pt (
     card TEXT PRIMARY KEY,
     power INTEGER NOT NULL,
     toughness INTEGER NOT NULL
 );
 
-CREATE TABLE card_text (
+CREATE TABLE cards.card_text (
     card TEXT PRIMARY KEY,
     text TEXT NOT NULL
 );
 
-CREATE TABLE set_info (
+CREATE TABLE cards.set_info (
     set TEXT PRIMARY KEY,
     full_name TEXT NOT NULL,
     release DATE NOT NULL,
     size INTEGER NOT NULL
 );
+
+
 
 

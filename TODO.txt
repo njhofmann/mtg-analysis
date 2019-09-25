@@ -4,17 +4,18 @@
 -Scryfall
   -Set up script based on cards in db
 -mtgtop8 parser
-  -ethical webscrapping
+  -header file for scrapper
   -combine list comprehensions / turn into functions
   -documentation
   -separate into modules, separate parsing logic out
-  -stop parsing for duplicate event, entry
   -parsing tests
   -stop parsing if empty event
   -multithreading - why or why not, justify
+  -fixed malformed urls
   -error handling for webpage exceptions
 -DB Schemas
   -Table desps how?
-  -add schemas
+  -Backup data
+  -Load into new schema
 -How to sheet
 -Add specific versions of each dependency to readme and requirements

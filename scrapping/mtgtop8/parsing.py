@@ -1,6 +1,7 @@
-
 import datetime
 import re
+
+"""Module for parsing tournament data from mtgtop8.com  """
 
 # regex constants
 EVENT_URL_REGEX = re.compile('event\?e=[0-9]+&f=[A-Z]+')
@@ -53,7 +54,7 @@ def card_in_mainboard(card):
     return True
 
 
-def get_events_from_page(url_soup, url_format, logger):
+def get_events_from_page(url_soup, base_url, logger):
     """
 
     :param url_data:
@@ -81,14 +82,15 @@ def get_events_from_page(url_soup, url_format, logger):
     if len(normal_events) < 1:
         return None
 
-    to_return = [_ for _ in normal_events]
+    to_return = []
     for idx, event in enumerate(normal_events):
         event_info = event.find(href=EVENT_URL_REGEX)
-        event_url_ending = event_info['href']
-        if event_url_ending not in MALFORMED_EVENT_URLS:
+        event_url = base_url + event_info['href']
+        if event_url not in MALFORMED_EVENT_URLS:
             event_name = event_info.get_text()
             event_date = format_date(event.find(class_='S10').get_text())
-            to_return[idx] = (event_name, event_date, event_url_ending)
+            logger.info('Fetching and inserting info for event {} from {}'.format(event_name, event_url))
+            to_return.append((event_name, event_date, event_url))
     return to_return
 
 

@@ -1,4 +1,3 @@
-"""Module for pulling tournament data from mtgtop8.com  """
 import re
 import random
 import time
@@ -8,6 +7,9 @@ import scrapping.mtgtop8.database_connections as dbc
 import scrapping.mtgtop8.parsing as prs
 import requests
 import bs4
+
+"""Module for pulling tournament data from mtgtop8.com."""
+
 
 def get_and_wait(url, data=None):
     """
@@ -22,7 +24,7 @@ def get_and_wait(url, data=None):
         url_data = requests.post(url=url, data=data)
     else:
         url_data = requests.get(url=url)
-    time.sleep(random.randint(1, 4))
+    time.sleep(random.randint(1, 3))
     return bs4.BeautifulSoup(markup=url_data.text, features='html.parser')
 
 
@@ -46,9 +48,9 @@ def init_logging():
 
 def retrieve_and_parse(search_url, url_format, page, database, logger, user='postgres'):
     """
-    Given a url to a url_format webpage on mtgtop8.com, pulls all tournaments and their related placement info and loads
-    them into the given Postgres database. Pulls all tournament info, placements in each tournament, cards played in
-    each placement, etc.
+    Given a search to a format's webpage on mtgtop8.com, pulls all tournaments and their related placement info and
+    loads them into the given Postgres database. Pulls all tournament info, placements in each tournament, cards played
+    in each entry, etc.
     :param search_url: main url page to parse
     :param url_format: format being queried
     :param database: name of Postgres database
@@ -65,16 +67,14 @@ def retrieve_and_parse(search_url, url_format, page, database, logger, user='pos
                 logger.info('Fetching for page {} in format {} from url {}'.format(page, url_format, search_url))
                 child_page_value = {'cp': page}  # set page value
                 url_soup = get_and_wait(search_url, child_page_value)
-                events = prs.get_events_from_page(url_soup, url_format, logger)
+                events = prs.get_events_from_page(url_soup, base_url, logger)
 
                 if events:
-                    for event_name, event_date, event_url_ending in events:
-                        event_url = base_url + event_url_ending
-                        logger.info('Fetching and inserting info for event {} from {}'.format(event_name, event_url))
-                        dbc.insert_into_tournament_info(event_name, event_date, url_format, event_url_ending, cursor, logger)
-                        tourny_id = dbc.get_tournament_info_id(event_name, event_date, url_format, event_url_ending, cursor)
+                    for event_name, event_date, event_url in events:
+                        dbc.insert_into_tournament_info(event_name, event_date, url_format, event_url, cursor, logger)
+                        tourny_id = dbc.get_tournament_info_id(event_name, event_date, url_format, event_url, cursor)
                         parse_event(tourny_id, event_url, base_url, cursor, logger)
-                        page += 1
+                    page += 1
                 else:
                     parsing = False
 
@@ -140,8 +140,8 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
 
 if __name__ == '__main__':
     urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 700),
-                        ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 440),
-                        ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 165)]
+                        ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 442),
+                        ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 325)]
     logger = init_logging()
     for url, url_format, page in urls_and_formats:
         retrieve_and_parse(url, url_format, page, 'mtg_analysis', logger)
