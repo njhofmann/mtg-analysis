@@ -2,7 +2,9 @@
   -How far back to draw data from
   -How often to get data: everyday, every week, etc.
 -Scryfall
-  -Set up script based on cards in db
+  -How to get all card sets
+  -Set info
+  -Main method w/ parameterized cursor
 -mtgtop8 parser
   -header file for scrapper
   -combine list comprehensions / turn into functions

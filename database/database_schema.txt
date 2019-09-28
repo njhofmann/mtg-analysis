@@ -82,8 +82,8 @@ CREATE TABLE cards.card_cmc (
 
 CREATE TABLE cards.card_pt (
     card TEXT PRIMARY KEY,
-    power INTEGER NOT NULL,
-    toughness INTEGER NOT NULL
+    power TEXT NOT NULL,
+    toughness TEXT NOT NULL
 );
 
 CREATE TABLE cards.card_text (

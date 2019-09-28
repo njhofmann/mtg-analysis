@@ -55,7 +55,7 @@ def retrieve_and_parse(search_url, url_format, page, database, logger, user='pos
     :param url_format: format being queried
     :param database: name of Postgres database
     :param logger: logger to use for logging info
-    :param user: login username for given database
+    :param user: login user for given database
     :return: None
     """
     with psycopg2.connect(user=user, dbname=database) as con:
@@ -141,7 +141,7 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
 if __name__ == '__main__':
     urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 700),
                         ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 442),
-                        ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 325)]
+                        ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 481)]
     logger = init_logging()
     for url, url_format, page in urls_and_formats:
         retrieve_and_parse(url, url_format, page, 'mtg_analysis', logger)
