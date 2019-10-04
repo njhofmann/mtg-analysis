@@ -42,7 +42,7 @@ CREATE TABLE events.entry_card (
     quantity INTEGER NOT NULL,
     CONSTRAINT positive_quantity CHECK (quantity > 0),
     PRIMARY KEY (entry_id, card, mainboard),
-    FOREIGN KEY (entry_id) REFERENCES event_ (entry_id)
+    FOREIGN KEY (entry_id) REFERENCES events.event_entry (entry_id)
 );
 
 CREATE TABLE prices.pricing (
@@ -89,6 +89,12 @@ CREATE TABLE cards.card_pt (
 CREATE TABLE cards.card_text (
     card TEXT PRIMARY KEY,
     text TEXT NOT NULL
+);
+
+CREATE TABLE cards.card_printing (
+    card TEXT PRIMARY KEY,
+    set TEXT NOT NULL,
+    FOREIGN KEY (set) REFERENCES cards.set_info (set)
 );
 
 CREATE TABLE cards.set_info (

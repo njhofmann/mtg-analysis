@@ -2,8 +2,8 @@
   -How far back to draw data from
   -How often to get data: everyday, every week, etc.
 -Scryfall
-  -How to get all card sets
-  -Set info
+  -Get card sets from search url
+  -Set info gathering
   -Main method w/ parameterized cursor
 -mtgtop8 parser
   -header file for scrapper
@@ -17,6 +17,7 @@
   -error handling for webpage exceptions
 -DB Schemas
   -Table desps how?
+  -Transfer existing schemas
   -Backup data
   -Load into new schema
 -How to sheet
