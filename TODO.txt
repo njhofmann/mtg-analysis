@@ -18,7 +18,7 @@
 -DB Schemas
   -Table desps how?
   -Transfer existing schemas
-  -Backup data
+  -Backup data, how often?
   -Load into new schema
 -How to sheet
 -Add specific versions of each dependency to readme and requirements

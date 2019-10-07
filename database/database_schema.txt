@@ -62,36 +62,36 @@ CREATE TYPE cards.color AS ENUM (
     'c' -- colorless
 );
 
-CREATE TABLE cards.card_color (
+CREATE TABLE cards.color (
     card TEXT,
     color COLOR,
     PRIMARY KEY (card, color)
 );
 
-CREATE TABLE cards.card_type (
+CREATE TABLE cards.type (
     card TEXT,
     type TEXT,
     PRIMARY KEY (card, type)
 );
 
-CREATE TABLE cards.card_cmc (
+CREATE TABLE cards.cmc (
     card TEXT PRIMARY KEY,
     cmc INTEGER NOT NULL,
     CONSTRAINT positive_quantity CHECK (cmc >= 0),
 );
 
-CREATE TABLE cards.card_pt (
+CREATE TABLE cards.pt (
     card TEXT PRIMARY KEY,
     power TEXT NOT NULL,
     toughness TEXT NOT NULL
 );
 
-CREATE TABLE cards.card_text (
+CREATE TABLE cards.text (
     card TEXT PRIMARY KEY,
     text TEXT NOT NULL
 );
 
-CREATE TABLE cards.card_printing (
+CREATE TABLE cards.printing (
     card TEXT PRIMARY KEY,
     set TEXT NOT NULL,
     FOREIGN KEY (set) REFERENCES cards.set_info (set)

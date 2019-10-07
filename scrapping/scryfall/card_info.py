@@ -6,9 +6,25 @@ from psycopg2 import sql
 
 """Module for pulling card info from the Scryfall API"""
 
+# Constants
 SCRYFALL_ENDPOINT = 'https://api.scryfall.com/cards/named'
 SCRYFALL_ENCODING = 'utf-8'
 REQUEST_DELAY = .1
+
+
+def get_n_item_insert_query(n):
+    """
+    Returns a 'blank' SQL insert query capable of inserting n items into n columns, SQL query is wrapped around
+    psycopg2's SQL builder.
+    :param n: number of items query should be capable of supporting
+    :return: blank SQL insert query capable of inserting n items into a table
+    """
+    if n < 1:
+        raise ValueError('n must be greater than 0')
+    columns = ' '.join(['{}' for i in range(n)])
+    column_values = ', '.join(['%s' for i in range(n)])
+    query = 'INSERT INTO TABLE {} ({}) VALUES ({})'.format('', columns, column_values)
+    return sql.SQL(query)
 
 
 def json_from_url(url):
@@ -69,6 +85,7 @@ def parse_and_store(card_data, db_cursor):
     check_and_add('colors', insert_card_colors)
     check_and_add('cmc', insert_card_cmc)
     check_and_add('type_line', insert_card_types)
+    check_and_add('text', insert_card_text)
 
     if 'power' in card_data and 'toughness' in card_data:
         power = card_data['power']
@@ -93,22 +110,43 @@ def get_card_printings(set_search_url):
 
 
 def insert_card_colors(card_name, colors, db_cursor):
-    pass
+    insert_query = get_n_item_insert_query(2).format(
+        sql.Identifier('cards.color'), sql.Identifier('card'), sql.Identifier('color'))
+    for color in colors:
+        color = color.lower()
+        db_cursor.execute(insert_query, (card_name, color))
+
 
 def insert_card_pt(card_name, power, toughness, db_cursor):
-    pass
+    insert_query = get_n_item_insert_query(3).format(
+        sql.Identifier('cards.pt'), sql.Identifier('card'), sql.Identifier('power'), sql.Identifier('toughness'))
+    db_cursor.execute(insert_query, (card_name, power, toughness))
+
+
+def insert_card_text(card_name, text, db_cursor):
+    insert_query = get_n_item_insert_query(2).format(
+        sql.Identifier('cards.text'), sql.Identifier('card'), sql.Identifier('text'))
+    db_cursor.execute(insert_query, (card_name, text))
+
 
 def insert_card_cmc(card_name, cmc, db_cursor):
-    pass
+    insert_query = get_n_item_insert_query(2).format(
+        sql.Identifier('cards.cmc'), sql.Identifier('card'), sql.Identifier('cmc'))
+    db_cursor.execute(insert_query, (card_name, cmc))
+
 
 def insert_card_types(card_name, types, db_cursor):
-    pass
+    insert_query = get_n_item_insert_query(2).format(
+        sql.Identifier('cards.type'), sql.Identifier('card'), sql.Identifier('type'))
+    for card_type in types:
+        db_cursor.execute(insert_query, (card_name, card_type))
+
 
 def insert_card_printings(card_name, sets, db_cursor):
-    insert_query = sql.SQL('INSERT INTO TABLE {} ({}, {}) VALUES (%s, %s)').format(
-        sql.Identifier('cards.card_printing'), sql.Identifier('card'), sql.Identifier('set'))
-    for set in sets:
-        db_cursor.execute(insert_query, (card_name, set))
+    insert_query = get_n_item_insert_query(2).format(
+        sql.Identifier('cards.printing'), sql.Identifier('card'), sql.Identifier('set'))
+    for printing in sets:
+        db_cursor.execute(insert_query, (card_name, printing))
 
 
 def get_stored_card_data(database, user):
@@ -122,7 +160,6 @@ def get_stored_card_data(database, user):
             for card in recorded_cards:
                 card_data = get_card_data(card)
                 parse_and_store(card_data, cursor)
-
 
 
 if __name__ == '__main__':
