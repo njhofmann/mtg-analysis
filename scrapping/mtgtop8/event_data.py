@@ -1,12 +1,12 @@
 import re
 import random
 import time
-import logging
 import psycopg2.errors
 import scrapping.mtgtop8.database_connections as dbc
 import scrapping.mtgtop8.parsing as prs
 import requests
 import bs4
+from scrapping.utility import init_logging
 
 """Module for pulling tournament data from mtgtop8.com."""
 
@@ -26,24 +26,6 @@ def get_and_wait(url, data=None):
         url_data = requests.get(url=url)
     time.sleep(random.randint(1, 3))
     return bs4.BeautifulSoup(markup=url_data.text, features='html.parser')
-
-
-def init_logging():
-    """
-    Initializes a logger set to lowest informative level (info) for printing message to console and a logging file.
-    :return: logger that can write to stream and a log file
-    """
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-
-    def init_channel(channel):
-        formatter = logging.Formatter('%(asctime)s: %(message)s')
-        channel.setFormatter(formatter)
-        logger.addHandler(channel)
-
-    init_channel(logging.StreamHandler())
-    init_channel(logging.FileHandler('mtgtop8_scrapper.log', mode='w'))
-    return logger
 
 
 def retrieve_and_parse(search_url, url_format, page, database, logger, user='postgres'):
@@ -142,6 +124,6 @@ if __name__ == '__main__':
     urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 700),
                         ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 442),
                         ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 481)]
-    logger = init_logging()
+    logger = init_logging('mtgtop8_scrapper.log')
     for url, url_format, page in urls_and_formats:
         retrieve_and_parse(url, url_format, page, 'mtg_analysis', logger)

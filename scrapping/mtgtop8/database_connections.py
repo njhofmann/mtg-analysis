@@ -1,10 +1,7 @@
 from psycopg2 import sql
-import psycopg2
 
 """Module for inserting tournament data from mtgtop8.com."""
 
-# psycopg2 constants
-PSYCOPG2_UNIQUE_VIOLATION_CODE = 23505
 
 def insert_into_tournament_info(event_name, event_date, event_format, event_url, db_cursor, logger):
     """
@@ -125,21 +122,3 @@ def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_curso
                                                                                         in_mainboard, quantity)
     execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
 
-
-def execute_query_pass_on_unique_violation(query_func, logger, warning_msg):
-    """
-    Wrapper function to execute around SQL insert queries functions being handled with psycopg2. If insert query would
-    insert a entry with a primary key or unique key already in the database, catches the error psycopg2 would throw
-    instead logging the duplicate insertion attempt withe given logger and warning message at level of warning.
-    :param query_func: function to execute the inserts some data into a database with psycopg2
-    :param logger: logger to log given warning message to in case of unique violation error
-    :param warning_msg: warning message to log if unique ivolation error is caught, specific to given query function
-    :return: None
-    """
-    try:
-        query_func()
-    except psycopg2.IntegrityError as e:
-        if e.pgcode != PSYCOPG2_UNIQUE_VIOLATION_CODE:
-            logger.warning(warning_msg)
-        else:
-            raise e

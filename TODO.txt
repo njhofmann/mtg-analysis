@@ -2,23 +2,24 @@
   -How far back to draw data from
   -How often to get data: everyday, every week, etc.
 -Scryfall
-  -Get card sets from search url
   -Set info gathering
-  -Main method w/ parameterized cursor
 -mtgtop8 parser
   -header file for scrapper
   -combine list comprehensions / turn into functions
-  -documentation
-  -separate into modules, separate parsing logic out
   -parsing tests
   -stop parsing if empty event
   -multithreading - why or why not, justify
-  -fixed malformed urls
   -error handling for webpage exceptions
 -DB Schemas
   -Table desps how?
-  -Transfer existing schemas
+  -Remove '-' type key
+  -Change key names
+  -Update changes across project
+  -Add set info, readd foreign key to card set info
   -Backup data, how often?
   -Load into new schema
--How to sheet
+-How to build data sheet
+-What queries to run to gather data
 -Add specific versions of each dependency to readme and requirements
+
+-Redo entries for "unknown cards"

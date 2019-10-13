@@ -110,3 +110,5 @@ g
 tcgplayer_info.yaml
 *db_backup.txt
 
+#Logs
+*.log
