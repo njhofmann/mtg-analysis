@@ -1,16 +1,12 @@
-import requests
-import json
+import scrapping.scryfall.utility as ssu
 import psycopg2
 from scrapping.utility import execute_query_pass_on_unique_violation, init_logging
-import time
 from psycopg2 import sql
 
 """Module for pulling card info from the Scryfall API"""
 
 # Constants
 SCRYFALL_ENDPOINT = 'https://api.scryfall.com/cards/named'
-SCRYFALL_ENCODING = 'utf-8'
-REQUEST_DELAY = .1
 INVALID_CARDS = ['Unknown Card']
 
 
@@ -29,26 +25,12 @@ def get_n_item_insert_query(n):
     return sql.SQL(query)
 
 
-def json_from_url(url):
-    """
-    Given a url that sends back JSON data upon a GET request, sends a GET request for it's JSON data, loads it, then
-    returns it.
-    :param url: url to retrieve data from
-    :return: decoded JSON data from given url
-    """
-    time.sleep(REQUEST_DELAY)
-    response = requests.get(url)
-    if response.ok:
-        card_data = response.content.decode(SCRYFALL_ENCODING)
-        return json.loads(card_data)
-    else:
-        response.raise_for_status()
-
-
 def get_cards_in_db(db_cursor, logger):
     """
     Retrieves a list of all the card names that have appeared in one or more tournament level decks in the database of
     the given cursor under the 'entry_card' table.
+    :param: db_cursor:
+    :param: logger:
     :return: list of all card name that have appeared in tournament level play
     """
     logger.info(msg='Getting list of cards to retrieve info for')
@@ -67,7 +49,7 @@ def get_card_data(card_name, logger):
     logger.info(msg='Retrieving data for card {}'.format(card_name))
     formatted_card_name = map(lambda x: x.lower(), card_name.split(' '))
     card_request_url = SCRYFALL_ENDPOINT + '?exact=' + '+'.join(formatted_card_name)
-    return json_from_url(card_request_url)
+    return ssu.json_from_url(card_request_url)
 
 
 def parse_and_store(card_data, db_cursor, logger):
@@ -109,7 +91,7 @@ def get_card_printings(set_search_url):
     :param set_search_url: url to retrieve card set data from
     :return: list of sets card associated with url has been printed in
     """
-    json_response = json_from_url(set_search_url)
+    json_response = ssu.json_from_url(set_search_url)
     set_data = json_response['data']
     return set([card['set'] for card in set_data])
 
