@@ -107,7 +107,8 @@ g
 .idea/
 
 # Private info
-tcgplayer_info.yaml
+scrapping/tcgplayer/tcgplayer_info.yaml
+scrapping/tcgplayer/bearer_token_info.yaml
 *db_backup.txt
 
 #Logs

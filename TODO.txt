@@ -19,6 +19,7 @@
   -Backup data, how often?
   -Load into new schema
 -How to build data sheet
+-Constants file
 -What queries to run to gather data
 -Add specific versions of each dependency to readme and requirements
 
