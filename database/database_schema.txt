@@ -101,10 +101,6 @@ CREATE TABLE cards.text (
 CREATE TABLE cards.printings (
     card TEXT,
     set TEXT NOT NULL,
-    PRIMARY KEY (card, set)
-);
-
+    PRIMARY KEY (card, set),
     FOREIGN KEY (set) REFERENCES cards.set_info (set)
-
-
-
+);

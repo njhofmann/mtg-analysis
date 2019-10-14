@@ -9,6 +9,7 @@ from psycopg2 import sql
 SCRYFALL_ENCODING = 'utf-8'
 REQUEST_DELAY = .1
 
+
 def json_from_url(url):
     """
     Given a url that sends back JSON data upon a GET request, sends a GET request for it's JSON data, loads it, then
@@ -39,4 +40,20 @@ def get_distinct_column_from_table(db_cursor, table, column):
         sql.Identifier(column), sql.Identifier(*table))
     db_cursor.execute(card_query)
     return [card for card in map(lambda x: x[0], db_cursor.fetchall())]
+
+
+def get_n_item_insert_query(n):
+    """
+    Returns a 'blank' SQL insert query capable of inserting n items into n columns, SQL query is wrapped around
+    psycopg2's SQL builder.
+    :param n: number of items query should be capable of supporting
+    :return: blank SQL insert query capable of inserting n items into a table
+    """
+    if n < 1:
+        raise ValueError('n must be greater than 0')
+    columns = ', '.join(['{}' for i in range(n)])
+    column_values = ', '.join(['%s' for i in range(n)])
+    query = 'INSERT INTO {} ({}) VALUES ({})'.format('{}', columns, column_values)
+    return sql.SQL(query)
+
 

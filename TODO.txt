@@ -1,8 +1,6 @@
 -Tcgplayer
   -How far back to draw data from
   -How often to get data: everyday, every week, etc.
--Scryfall
-  -Set info gathering
 -mtgtop8 parser
   -header file for scrapper
   -combine list comprehensions / turn into functions
@@ -13,11 +11,9 @@
 -DB Schemas
   -Table desps how?
   -Remove '-' type key
-  -Change key names
   -Update changes across project
   -Add set info, readd foreign key to card set info
-  -Backup data, how often?
-  -Load into new schema
+
 -How to build data sheet
 -Constants file
 -What queries to run to gather data

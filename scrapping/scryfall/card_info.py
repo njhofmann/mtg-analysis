@@ -8,21 +8,7 @@ from psycopg2 import sql
 # Constants
 SCRYFALL_ENDPOINT = 'https://api.scryfall.com/cards/named'
 INVALID_CARDS = ['Unknown Card']
-
-
-def get_n_item_insert_query(n):
-    """
-    Returns a 'blank' SQL insert query capable of inserting n items into n columns, SQL query is wrapped around
-    psycopg2's SQL builder.
-    :param n: number of items query should be capable of supporting
-    :return: blank SQL insert query capable of inserting n items into a table
-    """
-    if n < 1:
-        raise ValueError('n must be greater than 0')
-    columns = ', '.join(['{}' for i in range(n)])
-    column_values = ', '.join(['%s' for i in range(n)])
-    query = 'INSERT INTO {} ({}) VALUES ({})'.format('{}', columns, column_values)
-    return sql.SQL(query)
+INVALID_TYPES = ['-', '//', 'ù']
 
 
 def get_cards_in_db(db_cursor, logger):
@@ -99,7 +85,7 @@ def get_card_printings(set_search_url):
 def insert_card_colors(card_name, colors, db_cursor, logger):
     for color in colors:
         def insert_query():
-            insert_query = get_n_item_insert_query(2).format(
+            insert_query = ssu.get_n_item_insert_query(2).format(
                 sql.Identifier('cards', 'colors'), sql.Identifier('card'), sql.Identifier('color'))
             db_cursor.execute(insert_query, (card_name, color.lower()))
 
@@ -110,7 +96,7 @@ def insert_card_colors(card_name, colors, db_cursor, logger):
 
 def insert_card_pt(card_name, power, toughness, db_cursor, logger):
     def insert_query():
-        insert_query = get_n_item_insert_query(3).format(
+        insert_query = ssu.get_n_item_insert_query(3).format(
             sql.Identifier('cards', 'pt'), sql.Identifier('card'), sql.Identifier('power'), sql.Identifier('toughness'))
         db_cursor.execute(insert_query, (card_name, power, toughness))
 
@@ -121,7 +107,7 @@ def insert_card_pt(card_name, power, toughness, db_cursor, logger):
 
 def insert_card_text(card_name, text, db_cursor, logger):
     def insert_query():
-        insert_query = get_n_item_insert_query(2).format(
+        insert_query = ssu.get_n_item_insert_query(2).format(
             sql.Identifier('cards', 'text'), sql.Identifier('card'), sql.Identifier('text'))
         db_cursor.execute(insert_query, (card_name, text))
 
@@ -132,7 +118,7 @@ def insert_card_text(card_name, text, db_cursor, logger):
 
 def insert_card_cmc(card_name, cmc, db_cursor, logger):
     def insert_query():
-        insert_query = get_n_item_insert_query(2).format(
+        insert_query = ssu.get_n_item_insert_query(2).format(
             sql.Identifier('cards', 'cmc'), sql.Identifier('card'), sql.Identifier('cmc'))
         db_cursor.execute(insert_query, (card_name, cmc))
 
@@ -142,10 +128,10 @@ def insert_card_cmc(card_name, cmc, db_cursor, logger):
 
 
 def insert_card_types(card_name, type_line, db_cursor, logger):
-    types = [card_type.lower() for card_type in type_line.split(' ') if card_type != '—']
+    types = [card_type.lower() for card_type in type_line.split(' ') if card_type not in INVALID_TYPES]
     for card_type in types:
         def insert_query():
-            insert_query = get_n_item_insert_query(2).format(
+            insert_query = ssu.get_n_item_insert_query(2).format(
                 sql.Identifier('cards', 'types'), sql.Identifier('card'), sql.Identifier('type'))
             db_cursor.execute(insert_query, (card_name, card_type))
 
@@ -157,7 +143,7 @@ def insert_card_types(card_name, type_line, db_cursor, logger):
 def insert_card_printings(card_name, sets, db_cursor, logger):
     for printing in sets:
         def insert_query():
-            insert_query = get_n_item_insert_query(2).format(
+            insert_query = ssu.get_n_item_insert_query(2).format(
                 sql.Identifier('cards', 'printings'), sql.Identifier('card'), sql.Identifier('set'))
             db_cursor.execute(insert_query, (card_name, printing))
 
@@ -180,5 +166,5 @@ def get_stored_card_data(database, user, logger):
 
 
 if __name__ == '__main__':
-    logger = init_logging('scryfall_scapper.log')
+    logger = init_logging('scryfall_card_scapper.log')
     get_stored_card_data('mtg_analysis', 'postgres', logger)
