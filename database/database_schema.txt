@@ -48,8 +48,8 @@ CREATE TABLE events.entry_card (
 CREATE TABLE prices.pricing (
     card TEXT,
     set TEXT,
-    date DATE, -- date time?
-    price FLOAT
+    date DATE,
+    price MONEY NOT NULL,
     PRIMARY KEY (card, set, date)
 );
 
