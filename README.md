@@ -28,5 +28,5 @@ Data analysis and modeling of competitive level play and card prices for Magic: 
 
 # Data Acknowledgements
 * Tournament data drawn from [mtgtop8.com](mtgtop8.com).
-* Financial data drawn from ...
-* Card info drawn from the [Scryfall API](Scryfall API).
+* Financial data drawn from [MTGGoldfish](mtggoldfish.com)
+* Card info drawn from the [Scryfall API](https://scryfall.com/docs/api).

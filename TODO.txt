@@ -8,12 +8,19 @@
   -stop parsing if empty event
   -multithreading - why or why not, justify
   -error handling for webpage exceptions
+MTG Goldfish Scrapper
+  -try except for response scrapping
+  -
 -DB Schemas
   -Table desps how?
   -Remove '-' type key
   -Update changes across project
+  -Paaer vs online prices
+  -Major vs non major events
+  -Online vs paper events
   -Add set info, readd foreign key to card set info
 
+-Where can decorators be implemented?
 -How to build data sheet
 -Constants file
 -What queries to run to gather data
