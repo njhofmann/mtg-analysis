@@ -20,6 +20,7 @@ MTG Goldfish Scrapper
   -Online vs paper events
   -Add set info, readd foreign key to card set info
 
+-Database config file, add info to constants file
 -Where can decorators be implemented?
 -How to build data sheet
 -Constants file
