@@ -41,25 +41,24 @@ def get_mtggoldfish_pricing_url(printing, card, foil):
 
     printing = rejoin_on_plus(printing)
     card = rejoin_on_plus(card)
-
-    if foil:
-        return MTGGOLDFISH_PRICING_URL.format(printing, ':Foil', card)
-    return MTGGOLDFISH_PRICING_URL.format(printing, '', card)
-
+    foil_str = ':Foil' if foil else ''
+    return MTGGOLDFISH_PRICING_URL.format(printing, foil_str, card)
 
 def get_mtggoldfish_data(name, printing_abbrv, printing, logger):
+    formatted_name = name.replace("'", '')  # get rid of quotes
+
     # try printing non-foil, printing code non foil, printing foil, printing code foil
-    urls = [(get_mtggoldfish_pricing_url(printing, name, False), 'printing, non-foil'),
-            (get_mtggoldfish_pricing_url(printing_abbrv, name, False), 'printing abbreviation, non-foil'),
-            (get_mtggoldfish_pricing_url(printing, name, True), 'printing, foil'),
-            (get_mtggoldfish_pricing_url(printing_abbrv, name, True), 'printing abbreviation, foil')]
+    urls = [(get_mtggoldfish_pricing_url(printing, formatted_name, False), 'printing, non-foil'),
+            (get_mtggoldfish_pricing_url(printing_abbrv, formatted_name, False), 'printing abbreviation, non-foil'),
+            (get_mtggoldfish_pricing_url(printing, formatted_name, True), 'printing, foil'),
+            (get_mtggoldfish_pricing_url(printing_abbrv, formatted_name, True), 'printing abbreviation, foil')]
 
     for url, msg in urls:
         response = requests.get(url)
 
         if response.ok:
             logger.info(f'Got data for card {name} from {url} with parameters {msg}')
-            return response
+            return response.text
 
     logger.error(f'Failed to fetch prices for card {name} for printing {printing}')
     return None
@@ -100,15 +99,17 @@ def get_and_store_prices(database, user, logger):
             db_entries = get_cards_and_printings(cursor)
             # find prices for each one
             for name, printing_code, printing in db_entries:
-                paper_prices, online_prices = get_printing_prices(name, printing_code, printing)
+                paper_prices, online_prices = get_printing_prices(name, printing_code, printing, logger)
 
-            for mapping, is_paper in ((paper_prices, True), (online_prices, False)):
-                if mapping:
-                    for price, date in mapping.items():
-                        insert_price_data(price, date, is_paper, logger)
+                for mapping, is_paper in ((paper_prices, True), (online_prices, False)):
+                    if mapping:  # check isn't empty list
+                        for price, date in mapping.items():
+                            print(name, printing, price)
+                            #insert_price_data(name, printing_code, price, date, is_paper, cursor, logger)
+
 
 
 if __name__ == '__main__':
-    logger = su.init_logging()
+    logger = su.init_logging('mtggoldfish_log.log')
     get_and_store_prices('mtg_analysis', 'postgres', logger)
     # get_printing_prices('v13', 'Future Sight', 'Tarmogoyf')

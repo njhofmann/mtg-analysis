@@ -21,7 +21,7 @@ MTG Goldfish Scrapper
   -Add set info, readd foreign key to card set info
 
 -Update database tables and namings
--Add in db config file for login
+-Add in db config file for login, create script reading yaml file / adding to env vars
 -Database config file, add info to constants file
 -Where can decorators be implemented?
 -How to build data sheet
