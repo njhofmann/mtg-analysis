@@ -3,6 +3,7 @@ import re
 import datetime as dt
 from psycopg2 import sql
 import psycopg2
+import scrapping.utility as su
 
 """Module for pulling all the pricing data available for each card and its associated printings in the database."""
 
@@ -21,12 +22,20 @@ def get_cards_and_printings(cursor):
     cursor.execute(select_query)
     return cursor.fetchall()
 
-def insert_price_data(price, date, is_paper):
-    pass
+
+def insert_price_data(card, printing, price, date, is_paper, db_cursor, logger):
+    def price_insert_query():
+        insert_query = sql.SQL('INSERT INTO {} VALUES ({}, {}, {}, {})').format(
+            sql.Identifier('prices', 'pricing'), sql.Identifier('card'), sql.Identifier('set'), sql.Identifier('date'),
+            sql.Identifier('price'), sql.Identifier('is_paper'))
+        db_cursor.execute(insert_query, (card, printing, date, price, is_paper))
+
+    warning_msg = 'Duplicate price insertion into {} for card {} from printing {} on {}'.format(
+        'prices.printing', 'card', 'printing', 'date')
+    su.execute_query_pass_on_unique_violation(price_insert_query, logger, warning_msg)
 
 
 def get_mtggoldfish_pricing_url(printing, card, foil):
-
     def rejoin_on_plus(string):
         return '+'.join(string.split(' '))
 
@@ -38,24 +47,36 @@ def get_mtggoldfish_pricing_url(printing, card, foil):
     return MTGGOLDFISH_PRICING_URL.format(printing, '', card)
 
 
-def get_printing_prices(card_name, printing_code, printing):
-
+def get_mtggoldfish_data(name, printing_abbrv, printing, logger):
     # try printing non-foil, printing code non foil, printing foil, printing code foil
+    urls = [(get_mtggoldfish_pricing_url(printing, name, False), 'printing, non-foil'),
+            (get_mtggoldfish_pricing_url(printing_abbrv, name, False), 'printing abbreviation, non-foil'),
+            (get_mtggoldfish_pricing_url(printing, name, True), 'printing, foil'),
+            (get_mtggoldfish_pricing_url(printing_abbrv, name, True), 'printing abbreviation, foil')]
 
-    url = get_mtggoldfish_pricing_url(printing, card_name, False)
-    response = requests.get(url)
+    for url, msg in urls:
+        response = requests.get(url)
 
-    if not response.ok:
-        response.raise_for_status()
+        if response.ok:
+            logger.info(f'Got data for card {name} from {url} with parameters {msg}')
+            return response
 
-    data = response.text
-    print(data)
+    logger.error(f'Failed to fetch prices for card {name} for printing {printing}')
+    return None
+
+
+def get_printing_prices(card_name, printing_code, printing, logger):
+    # try printing non-foil printing code non foil, printing foil, printing code foil
+    data = get_mtggoldfish_data(card_name, printing_code, printing, logger)
+
+    if not data:  # no data fetched, terminate early
+        return [], []
+
     matches = DATE_PRICE_PATTERN.findall(data)
 
     paper_prices = {}
     online_prices = {}
     prev_date = None
-    print(matches)
     # separate paper and online prices, paper prices first
     for match in matches:
         date = DATE_PATTERN.search(match).group(0)
@@ -71,7 +92,7 @@ def get_printing_prices(card_name, printing_code, printing):
     return paper_prices, online_prices
 
 
-def get_and_store_prices(database, user):
+def get_and_store_prices(database, user, logger):
     # all cards and printings in db
     with psycopg2.connect(database=database, user=user) as conn:
         conn.autocommit = True
@@ -81,12 +102,13 @@ def get_and_store_prices(database, user):
             for name, printing_code, printing in db_entries:
                 paper_prices, online_prices = get_printing_prices(name, printing_code, printing)
 
-            # for mapping, is_paper in ((paper_prices, True), (online_prices, False)):
-            #     if mapping:
-            #         for price, date in mapping.items():
-            #             insert_price_data(price, date, is_paper)
+            for mapping, is_paper in ((paper_prices, True), (online_prices, False)):
+                if mapping:
+                    for price, date in mapping.items():
+                        insert_price_data(price, date, is_paper, logger)
 
 
 if __name__ == '__main__':
-    get_and_store_prices('mtg_analysis', 'postgres')
-    #get_printing_prices('v13', 'Future Sight', 'Tarmogoyf')
+    logger = su.init_logging()
+    get_and_store_prices('mtg_analysis', 'postgres', logger)
+    # get_printing_prices('v13', 'Future Sight', 'Tarmogoyf')

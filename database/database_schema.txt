@@ -50,6 +50,7 @@ CREATE TABLE prices.pricing (
     set TEXT,
     date DATE,
     price MONEY NOT NULL,
+    is_paper BOOLEAN NOT NULL,
     PRIMARY KEY (card, set, date)
 );
 

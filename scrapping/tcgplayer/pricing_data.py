@@ -28,5 +28,5 @@ def get_bearer_token(bearer_file):
 
 
 if __name__ == '__main__':
-    bearer_token = get_bearer_token('bearer_token_info.yaml')
+    bearer_token = get_bearer_token('bearer-token-info.yaml')
     print(get_categories(bearer_token))

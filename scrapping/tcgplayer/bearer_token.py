@@ -10,7 +10,7 @@ TCGPLAYER_TOKEN_URL = 'https://api.tcgplayer.com/token'
 def get_new_bearer_token(tcgplayer_info, bearer_info):
     """
     Requests a new bearer token from the TCGPlayer API using the private and public keys listed under
-    'tcgplayer_info.yaml'. Stores the new bearer token and related info under 'bearer_token_info.yaml'.
+    'tcgplayer-info.yaml'. Stores the new bearer token and related info under 'bearer-token-info.yaml'.
     :
     :return: None
     """
@@ -43,4 +43,4 @@ def get_new_bearer_token(tcgplayer_info, bearer_info):
 
 
 if __name__ == '__main__':
-    get_new_bearer_token('tcgplayer_info.yaml', 'bearer_token_info.yaml')
+    get_new_bearer_token('tcgplayer-info.yaml', 'bearer-token-info.yaml')
