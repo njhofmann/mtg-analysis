@@ -22,7 +22,7 @@ def init_logging(log_file):
         logger.addHandler(channel)
 
     init_channel(logging.StreamHandler())
-    init_channel(logging.FileHandler(log_file, mode='w'))
+    init_channel(logging.FileHandler(log_file, mode='w', encoding='utf-8'))
     return logger
 
 
