@@ -1,8 +1,8 @@
 import psycopg2
 from psycopg2 import sql
-import datetime as dt
 import scrapping.utility as su
 import scrapping.scryfall.utility as ssu
+import database.db_reader as dbr
 
 """Module for pulling set info from the Scryfall API"""
 
@@ -57,4 +57,4 @@ def get_stored_set_data(database, user, logger):
 
 if __name__ == '__main__':
     logger = su.init_logging('scryfall_set_scrapper.log')
-    get_stored_set_data('mtg_analysis', 'postgres', logger)
+    get_stored_set_data(dbr.DATABASE_NAME, dbr.USER, logger)

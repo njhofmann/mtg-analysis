@@ -1,3 +1,3 @@
-DATABASE='mtg_analysis'
-OWNER='postgres'
-PASSWORD='postgres'
+DATABASE: mtg_analysis
+OWNER: postgres
+PASSWORD: postgres

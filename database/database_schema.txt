@@ -49,9 +49,9 @@ CREATE TABLE prices.pricing (
     card TEXT,
     set TEXT,
     date DATE,
+    is_paper BOOLEAN,
     price MONEY NOT NULL,
-    is_paper BOOLEAN NOT NULL,
-    PRIMARY KEY (card, set, date)
+    PRIMARY KEY (card, set, date, is_paper)
 );
 
 CREATE TYPE cards.color AS ENUM (

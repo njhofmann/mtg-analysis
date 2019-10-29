@@ -4,6 +4,7 @@ import datetime as dt
 from psycopg2 import sql
 import psycopg2
 import scrapping.utility as su
+import database.db_reader as dbr
 
 """Module for pulling all the pricing data available for each card and its associated printings in the database."""
 
@@ -187,5 +188,4 @@ def get_and_store_prices(database, user, logger):
 
 if __name__ == '__main__':
     logger = su.init_logging('mtggoldfish_log.log')
-    get_and_store_prices('mtg_analysis', 'postgres', logger)
-    #o, p = get_printing_prices('Tidespout Tyrant', 'bbd', 'Battlebond', logger)
+    get_and_store_prices(dbr.DATABASE_NAME, dbr.USER, logger)

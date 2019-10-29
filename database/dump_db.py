@@ -1,4 +1,6 @@
 import subprocess as sbp
+import database.db_reader as dbr
+
 """Module for creating a backup of the database based off of the given params"""
 
 
@@ -26,4 +28,4 @@ def create_dump(db_name, backup_name, user):
 
 
 if __name__ == '__main__':
-    create_dump('mtg_analysis', 'db_backup.txt', 'postgres')
+    create_dump(dbr.DATABASE_NAME, 'db_backup.txt', dbr.USER)

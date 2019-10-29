@@ -7,6 +7,7 @@ import scrapping.mtgtop8.parsing as prs
 import requests
 import bs4
 from scrapping.utility import init_logging
+import database.db_reader as dbr
 
 """Module for pulling tournament data from mtgtop8.com."""
 
@@ -126,4 +127,4 @@ if __name__ == '__main__':
                         ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 481)]
     logger = init_logging('mtgtop8_scrapper.log')
     for url, url_format, page in urls_and_formats:
-        retrieve_and_parse(url, url_format, page, 'mtg_analysis', logger)
+        retrieve_and_parse(url, url_format, page, dbr.DATABASE_NAME, logger)

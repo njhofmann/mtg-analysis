@@ -2,6 +2,7 @@ import scrapping.scryfall.utility as ssu
 import psycopg2
 from scrapping.utility import execute_query_pass_on_unique_violation, init_logging
 from psycopg2 import sql
+import database.db_reader as dbr
 
 """Module for pulling card info from the Scryfall API"""
 
@@ -167,4 +168,4 @@ def get_stored_card_data(database, user, logger):
 
 if __name__ == '__main__':
     logger = init_logging('scryfall_card_scapper.log')
-    get_stored_card_data('mtg_analysis', 'postgres', logger)
+    get_stored_card_data(dbr.DATABASE_NAME, dbr.USER, logger)

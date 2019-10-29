@@ -1,6 +1,3 @@
--Tcgplayer
-  -How far back to draw data from
-  -How often to get data: everyday, every week, etc.
 -mtgtop8 parser
   -header file for scrapper
   -combine list comprehensions / turn into functions
@@ -9,20 +6,17 @@
   -multithreading - why or why not, justify
   -error handling for webpage exceptions
 MTG Goldfish Scrapper
-  -try except for response scrapping
-  -
+
 -DB Schemas
   -Table desps how?
   -Remove '-' type key
   -Update changes across project
-  -Paaer vs online prices
   -Major vs non major events
   -Online vs paper events
-  -Add set info, readd foreign key to card set info
-
 -Update database tables and namings
--Add in db config file for login, create script reading yaml file / adding to env vars
--Database config file, add info to constants file
+
+-Questions of interest --> needed data --> relevant SQL query
+
 -Where can decorators be implemented?
 -How to build data sheet
 -Constants file
