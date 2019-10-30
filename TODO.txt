@@ -15,6 +15,7 @@ MTG Goldfish Scrapper
   -Online vs paper events
 -Update database tables and namings
 
+-Documentation
 -Questions of interest --> needed data --> relevant SQL query
 
 -Where can decorators be implemented?

@@ -3,23 +3,15 @@ Data analysis and modeling of competitive level play and card prices for Magic: 
 
 # Motivating Questions
 
-* What is the relationship between the price of new MTG cards (hype / chase cards vs sleeper / overlooked cards) over time in relation to their subsequent prevalence in relevant metagames?
+* What is the relationship between the price of new MTG cards (hype / chase cards vs sleeper / overlooked cards) over 
+time in relation to their subsequent prevalence in relevant metagames?
 
-* How much does a card seeing play after its release impact its price? 
+* How much does a card seeing more or less play in a metagame impact its price? 
 
-* If card was already predicted to be played, how does its price change? 
+* How much of an impact do reprints have on the price of MTG cards over time? How does print size and rarity relate to 
+price decline?  How long does it take for the price to rebound to pre-reprint levels?
 
-* If card was a sleeper, how much does its price change?
-
-* How much of an impact do reprints have on the price of MTG cards over time? 
-
-* If a card is reprinted, how does print size relate to price decline? 
-
-* How long does it take for the price to rebound to pre-reprint levels?
-
-* Etc.
-
-
+* How have the prices for decks in non-rotating formats changed over time?
 
 # 3D Party Libraries
 * Data stored with [Postgres 11.5](https://www.postgresql.org/)

@@ -35,4 +35,4 @@ def create_new_db(db_name, init_file, user='postgres'):
 
 
 if __name__ == '__main__':
-    create_new_db('mtg_analysis2', 'database_schema.txt')
+    create_new_db('mtg_analysis2', 'database_schema.sql')
