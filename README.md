@@ -13,6 +13,8 @@ price decline?  How long does it take for the price to rebound to pre-reprint le
 
 * How have the prices for decks in non-rotating formats changed over time?
 
+* How have format metagames changed over time?
+
 # 3D Party Libraries
 * Data stored with [Postgres 11.5](https://www.postgresql.org/)
 * Database interfacing with [psycopg2 2.3.8](https://pypi.org/project/psycopg2/).
