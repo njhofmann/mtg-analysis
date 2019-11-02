@@ -131,6 +131,10 @@ def get_entry_deck_info(entry_soup):
     if deck_archetype is not None:
         deck_archetype = deck_archetype.get_text()
 
+    # remove ending of 'decks'
+    if deck_archetype.endswith('decks'):
+        deck_archetype = deck_archetype[:-5] + ' ' + deck_archetype[-5:]
+
     # find all cards apart of the deck
     cards = entry_soup.find_all(class_='G14')
     return cards, deck_archetype

@@ -113,3 +113,7 @@ scrapping/tcgplayer/bearer-token-info.yaml
 
 #Logs
 *.log
+
+# db files
+*.sql
+*.zip

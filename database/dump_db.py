@@ -28,4 +28,4 @@ def create_dump(db_name, backup_name, user):
 
 
 if __name__ == '__main__':
-    create_dump(dbr.DATABASE_NAME, 'db_backup.txt', dbr.USER)
+    create_dump(dbr.DATABASE_NAME, 'db_backup.sql', dbr.USER)

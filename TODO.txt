@@ -19,7 +19,7 @@ MTG Goldfish Scrapper
 -Standard rotation dates
 -DB names constants file
 -Rename tables and keys
--Remove "decks" from archetype names, add fix to parser
+-Add space between "decks" for archetype names
 -Questions of interest --> needed data --> relevant SQL query
 
 -Where can decorators be implemented?
