@@ -1,4 +1,5 @@
 from psycopg2 import sql
+import scrapping.utility as su
 
 """Module for inserting tournament data from mtgtop8.com."""
 
@@ -22,7 +23,7 @@ def insert_into_tournament_info(event_name, event_date, event_format, event_url,
         db_cursor.execute(insert_query, (event_name, event_date, event_format, event_url))
 
     warning_msg = 'Duplicate entry for tournament_info attempted, key {}, {}'.format(event_name, event_date)
-    execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
+    su.execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
 
 
 def get_tournament_info_id(event_name, event_date, event_format, event_url, db_cursor):
@@ -81,7 +82,7 @@ def insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, play
 
     warning_msg = 'Duplicate entry for tournament_entry attempted, for key ' \
                   '{}, {}, {}, {}'.format(tourny_id, deck_archetype, deck_placement, player_name)
-    execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
+    su.execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
 
 
 def get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_name, db_cursor):
@@ -120,5 +121,5 @@ def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_curso
 
     warning_msg = 'Duplicate entry for entry_card attempted, key {}, {}, {}, {}'.format(entry_id, card_name,
                                                                                         in_mainboard, quantity)
-    execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
+    su.execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
 

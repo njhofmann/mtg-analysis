@@ -1,4 +1,5 @@
 import subprocess as sbp
+import zipfile as zp
 import database.db_reader as dbr
 
 """Module for creating a backup of the database based off of the given params"""
@@ -25,6 +26,10 @@ def create_dump(db_name, backup_name, user):
         print(err)
     else:
         print(out)
+
+    zip_file = backup_name.split('.')[0] + '.zip'
+    with zp.ZipFile(zip_file, 'w') as zip:
+        zip.write(backup_name)
 
 
 if __name__ == '__main__':

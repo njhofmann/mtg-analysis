@@ -16,10 +16,9 @@ MTG Goldfish Scrapper
 -Update database tables and namings
 
 -Documentation
--Standard rotation dates
+-Format rotation dates table: add manually, add to init file, redo db dump
 -DB names constants file
 -Rename tables and keys
--Add space between "decks" for archetype names
 -Questions of interest --> needed data --> relevant SQL query
 
 -Where can decorators be implemented?
