@@ -10,6 +10,14 @@ CREATE TYPE events.format AS ENUM (
     'legacy'
 );
 
+CREATE TABLE events.format_period (
+    id SERIAL NOT NULL,
+    format FORMAT,
+    start DATE,
+    end DATE,
+    UNIQUE (format, start, end)
+)
+
 CREATE TABLE events.event_info (
     event_id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -69,6 +77,15 @@ CREATE TABLE cards.set_info (
     release DATE NOT NULL,
     size INTEGER NOT NULL
 );
+
+
+CREATE TABLE events.format_period_set (
+    period_id INTEGER,
+    set TEXT,
+    PRIMARY KEY (period_id, set),
+    FOREIGN KEY (set) REFERENCES cards.set_info(set)
+)
+
 
 CREATE TABLE cards.colors (
     card TEXT,

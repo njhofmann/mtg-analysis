@@ -13,6 +13,7 @@ MTG Goldfish Scrapper
   -Update changes across project
   -Major vs non major events
   -Online vs paper events
+  -Add format periods and legal blocks
 -Update database tables and namings
 
 -Documentation
