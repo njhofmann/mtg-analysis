@@ -5,6 +5,7 @@
   -stop parsing if empty event
   -multithreading - why or why not, justify
   -error handling for webpage exceptions
+
 MTG Goldfish Scrapper
 
 -DB Schemas

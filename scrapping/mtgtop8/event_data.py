@@ -2,7 +2,7 @@ import re
 import random
 import time
 import psycopg2.errors
-import scrapping.mtgtop8.database_connections as dbc
+import scrapping.mtgtop8.db_conns as dbc
 import scrapping.mtgtop8.parsing as prs
 import requests
 import bs4
