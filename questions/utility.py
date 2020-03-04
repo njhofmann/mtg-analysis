@@ -1,6 +1,7 @@
 import database.db_reader as ddr
 import psycopg2
 
+
 def generic_search(search_query):
     """
     Generic function that executes a search query in the database and returns the results.

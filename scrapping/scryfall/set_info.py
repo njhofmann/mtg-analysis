@@ -9,6 +9,7 @@ import database.db_reader as dbr
 # Constants
 SCRYFALL_SET_URL = 'https://api.scryfall.com/sets'
 
+
 def get_sets_from_db(db_cursor):
     return ssu.get_distinct_column_from_table(db_cursor, ('cards', 'printings'), 'set')
 
@@ -38,7 +39,7 @@ def get_stored_set_data(database, user, logger):
         conn.autocommit = True
         with conn.cursor() as cursor:
             # get all sets stored in database
-            recorded_sets = get_sets_from_db(cursor,)
+            recorded_sets = get_sets_from_db(cursor, )
 
             # get all set data as mapping of set code to set info
             set_data = get_set_data(logger)

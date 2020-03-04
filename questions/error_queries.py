@@ -1,3 +1,5 @@
+from questions.utility import generic_search
+
 """Collection of queries showing errors / malformed data in the database"""
 
 # Decks FROM mtgtop8 that have sideboards above 15
@@ -25,4 +27,6 @@ error_decks = ('WITH ids AS ('
                'FROM events.event_entry e, ids '
                'WHERE e.entry_id = ids.id')
 
-print(str(error_decks))
+if __name__ == '__main__':
+    for i in generic_search(error_decks):
+        print(i)

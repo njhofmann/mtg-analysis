@@ -44,6 +44,7 @@ def insert_price_data(card, printing, price, date, is_paper, db_cursor, logger):
     :param logger: logger to record any relevant info with
     :return: None
     """
+
     def price_insert_query():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}, {}) VALUES (%s, %s, %s, %s, %s)').format(
             sql.Identifier('prices', 'pricing'), sql.Identifier('card'), sql.Identifier('set'), sql.Identifier('date'),
@@ -63,6 +64,7 @@ def get_mtggoldfish_pricing_url(printing, card, foil):
     :param foil: if card printing is foil
     :return: MTGGoldfish url for the given card printing
     """
+
     def rejoin_on_plus(string):
         return '+'.join(string.split(' '))
 
