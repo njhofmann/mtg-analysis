@@ -33,6 +33,7 @@
 * data types
 * f-strings
 * sql format calls, one per line
+
 ### misc
 * get tcgplayer api key
 * Redo entries for "unknown cards"

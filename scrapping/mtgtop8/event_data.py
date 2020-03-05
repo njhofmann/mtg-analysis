@@ -112,10 +112,10 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
 
 
 def main():
-    urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 0),  # 700
-                        ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 0),  # 442
+    urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 0),
+                        ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 0),
                         ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 0),
-                        ('https://www.mtgtop8.com/format?f=PI&meta=191', 'pioneer', 0)]  # 481
+                        ('https://www.mtgtop8.com/format?f=PI&meta=191', 'pioneer', 0)]
     logger = init_logging('mtgtop8_scrapper.log')
     for url, url_format, page in urls_and_formats:
         retrieve_and_parse(url, url_format, page, dbr.DATABASE_NAME, logger)

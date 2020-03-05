@@ -30,7 +30,7 @@ def execute_query_pass_on_unique_violation(query_func, logger, warning_msg):
     instead logging the duplicate insertion attempt withe given logger and warning message at level of warning.
     :param query_func: function to execute the inserts some data into a database with psycopg2
     :param logger: logger to log given warning message to in case of unique violation error
-    :param warning_msg: warning message to log if unique ivolation error is caught, specific to given query function
+    :param warning_msg: warning message to log if unique violation error is caught, specific to given query function
     :return: None"""
     try:
         query_func()
