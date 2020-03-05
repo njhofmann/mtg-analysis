@@ -22,10 +22,13 @@
 
 ### Docker
 * dockerize data scrappers
+* run scrappers in order
+* connect to outside db
 * automated docker compose file (keep order in mind_)
 
 ### misc
 * data types
+* get tcgplayer api key
 * Redo entries for "unknown cards"
 * Documentation
 * DB names constants file

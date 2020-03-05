@@ -8,6 +8,7 @@ EVENT_URL_REGEX = re.compile('event\?e=[0-9]+&f=[A-Z]+')
 EVENT_SIZE_REGEX = re.compile('[0-9]+ players')
 DECK_URL_REGEX = re.compile('\?e=[0-9]+&d=[0-9]+&f=[A-Z]+')
 DECK_ARCHETYPE_REGEX = re.compile('archetype?\?a=[0-9]+')
+DECK_ARCHETYPE_IMG_REGEX = re.compile('graph/manas/[a-zA-Z]+.png')
 
 # malformed urls
 MALFORMED_EVENT_URLS = ['https://www.mtgtop8.com/event?e=7018&f=LE']
@@ -120,6 +121,13 @@ def get_event_entry_info(entry_soup):
     return entry_url_ending, deck_name, deck_rank, player_name
 
 
+def get_deck_archetype_as_imgs(entry_soup):
+    parent_class = entry_soup.find(class_='S16')
+    imgs = parent_class.find_all(src=DECK_ARCHETYPE_IMG_REGEX)
+    print(''.join(sorted([child['src'].split('.')[0][-1] for child in imgs])))
+    return ''.join(sorted([child['src'].split('.')[0][-1] for child in imgs]))
+
+
 def get_entry_deck_info(entry_soup):
     """
 
@@ -131,9 +139,13 @@ def get_entry_deck_info(entry_soup):
     if deck_archetype is not None:
         deck_archetype = deck_archetype.get_text()
 
-    # remove ending of 'decks'
-    if deck_archetype.endswith('decks'):
-        deck_archetype = deck_archetype[:-5] + ' ' + deck_archetype[-5:]
+        # remove ending of 'decks'
+        if deck_archetype.endswith('decks'):
+            deck_archetype = deck_archetype[:-5] + ' ' + deck_archetype[-5:]
+
+    # if no archetype found, try images
+    elif deck_archetype is None:
+        deck_archetype = get_deck_archetype_as_imgs(entry_soup)
 
     # find all cards apart of the deck
     cards = entry_soup.find_all(class_='G14')
