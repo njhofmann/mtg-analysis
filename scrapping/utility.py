@@ -40,6 +40,7 @@ def execute_query_pass_on_unique_violation(query_func, logger, warning_msg):
         query_func()
     except psycopg2.IntegrityError as e:
         if e.pgcode != PSYCOPG2_UNIQUE_VIOLATION_CODE:
+            logger.warning(str(e))
             logger.warning(warning_msg)
         else:
             raise e

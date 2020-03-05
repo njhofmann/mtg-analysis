@@ -25,6 +25,7 @@
 * automated docker compose file (keep order in mind_)
 
 ### misc
+* data types
 * Redo entries for "unknown cards"
 * Documentation
 * DB names constants file

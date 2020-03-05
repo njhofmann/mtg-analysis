@@ -16,10 +16,11 @@ def insert_into_tournament_info(event_name, event_date, event_format, event_url,
     :param logger: logger by which info will be logged
     :return: None
     """
+
     def insert_query_func():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}) VALUES (%s, %s, %s, %s)').format(
-            sql.Identifier('tournament_info'), sql.Identifier('name'), sql.Identifier('date'), sql.Identifier('format'),
-            sql.Identifier('url'))
+            sql.Identifier('events', 'event_info'), sql.Identifier('name'), sql.Identifier('date'),
+            sql.Identifier('format'), sql.Identifier('url'))
         db_cursor.execute(insert_query, (event_name, event_date, event_format, event_url))
 
     warning_msg = 'Duplicate entry for tournament_info attempted, key {}, {}'.format(event_name, event_date)
@@ -37,8 +38,8 @@ def get_tournament_info_id(event_name, event_date, event_format, event_url, db_c
     :return:
     """
     tourny_id_query = sql.SQL('SELECT {} FROM {} WHERE {} = %s AND {} = %s AND {} = %s AND {} = %s').format(
-        sql.Identifier('tourny_id'), sql.Identifier('tournament_info'), sql.Identifier('name'), sql.Identifier('date'),
-        sql.Identifier('format'), sql.Identifier('url'))
+        sql.Identifier('tourny_id'), sql.Identifier('events', 'event_info'), sql.Identifier('name'),
+        sql.Identifier('date'), sql.Identifier('format'), sql.Identifier('url'))
     db_cursor.execute(tourny_id_query, (event_name, event_date, event_format, event_url))
     return int(db_cursor.fetchone()[0])
 
@@ -53,7 +54,7 @@ def update_tournament_info_size(tourny_id, size, db_cursor, logger):
     :return: None
     """
     update_query = sql.SQL('UPDATE {} SET {} = %s WHERE {} = %s').format(
-        sql.Identifier('tournament_info'), sql.Identifier('size'), sql.Identifier('tourny_id'))
+        sql.Identifier('events', 'event_info'), sql.Identifier('size'), sql.Identifier('tourny_id'))
     db_cursor.execute(update_query, (size, tourny_id))
     logger.info('Updating size for tournament {} to size {}'.format(tourny_id, size))
 
@@ -72,10 +73,11 @@ def insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, play
     :param logger:
     :return:
     """
+
     def insert_query_func():
         insert_query = sql.SQL(
             'INSERT INTO {} ({}, {}, {}, {}, {}, {}) VALUES (%s, %s, %s, %s, %s, %s)').format(
-            sql.Identifier('tournament_entry'), sql.Identifier('tourny_id'), sql.Identifier('archetype'),
+            sql.Identifier('events', 'event_entry'), sql.Identifier('tourny_id'), sql.Identifier('archetype'),
             sql.Identifier('place'), sql.Identifier('player'), sql.Identifier('deck_name'), sql.Identifier('url'))
         db_cursor.execute(insert_query, (tourny_id, deck_archetype, deck_placement, player_name, deck_name,
                                          placement_url))
@@ -96,7 +98,7 @@ def get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_na
     :return:
     """
     entry_id_query = sql.SQL('SELECT {} FROM {} WHERE {} = %s AND {} = %s AND {} = %s AND {} = %s').format(
-        sql.Identifier('entry_id'), sql.Identifier('tournament_entry'), sql.Identifier('tourny_id'),
+        sql.Identifier('entry_id'), sql.Identifier('events', 'event_entry'), sql.Identifier('tourny_id'),
         sql.Identifier('archetype'), sql.Identifier('place'), sql.Identifier('player'))
     db_cursor.execute(entry_id_query, (tourny_id, deck_archetype, deck_placement, player_name))
     return int(db_cursor.fetchone()[0])
@@ -113,13 +115,13 @@ def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_curso
     :param logger:
     :return:
     """
+
     def insert_query_func():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}) VALUES (%s, %s, %s, %s)').format(
-            sql.Identifier('entry_card'), sql.Identifier('entry_id'), sql.Identifier('card'),
+            sql.Identifier('events', 'entry_card'), sql.Identifier('entry_id'), sql.Identifier('card'),
             sql.Identifier('mainboard'), sql.Identifier('quantity'))
         db_cursor.execute(insert_query, (entry_id, card_name, in_mainboard, quantity))
 
     warning_msg = 'Duplicate entry for entry_card attempted, key {}, {}, {}, {}'.format(entry_id, card_name,
                                                                                         in_mainboard, quantity)
     su.execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
-

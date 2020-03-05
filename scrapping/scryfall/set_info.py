@@ -28,10 +28,14 @@ def get_set_data(logger):
 
 def insert_set_data(db_cursor, code, full_name, release_date, size, logger):
     logger.info(f'Inserting set info for set {code}')
-    insert_query = ssu.get_n_item_insert_query(4).format(
-        sql.Identifier('cards', 'set_info'), sql.Identifier('set'), sql.Identifier('full_name'),
-        sql.Identifier('release'), sql.Identifier('size'))
-    db_cursor.execute(insert_query, (code, full_name, release_date, size))
+
+    def temp():
+        insert_query = ssu.get_n_item_insert_query(4).format(
+            sql.Identifier('cards', 'set_info'), sql.Identifier('set'), sql.Identifier('full_name'),
+            sql.Identifier('release'), sql.Identifier('size'))
+        db_cursor.execute(insert_query, (code, full_name, release_date, size))
+
+    su.execute_query_pass_on_unique_violation(temp, logger, 'failed to retrieve set info')
 
 
 def get_stored_set_data(database, user, logger):
