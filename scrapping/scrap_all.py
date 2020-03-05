@@ -7,15 +7,17 @@ import scrapping.mtgtop8.event_data as e
 
 
 def main():
+    prod_mode = True
+
     print('getting event data')
-    e.main()
+    e.main(prod_mode)
 
     print('getting set and card data')
-    s.main()
-    c.main()
+    s.main(prod_mode)
+    c.main(prod_mode)
 
     print('getting pricing data')
-    p.main()
+    p.main(prod_mode)
 
 
 if __name__ == '__main__':

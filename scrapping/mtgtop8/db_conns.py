@@ -4,7 +4,7 @@ import scrapping.utility as su
 """Module for inserting tournament data from mtgtop8.com."""
 
 
-def insert_into_tournament_info(event_name, event_date, event_format, event_url, db_cursor, logger):
+def insert_into_tournament_info(event_name, event_date, event_format, event_url, db_cursor, logger, prod_mode):
     """Inserts info for a tournament into the cursor of the given database. Assume size is None for now, can be lated
     updated if needed
     :param event_name: name of tournament
@@ -25,7 +25,7 @@ def insert_into_tournament_info(event_name, event_date, event_format, event_url,
         db_cursor.execute(insert_query, (event_name, event_date, event_format, event_url))
 
     warning_msg = f'Duplicate entry for tournament_info attempted, key {event_name}, {event_date}'
-    su.execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
+    su.execute_query(insert_query_func, logger, warning_msg, prod_mode)
 
 
 def get_tournament_info_id(event_name, event_date, event_format, event_url, db_cursor):
@@ -64,7 +64,7 @@ def update_tournament_info_size(tourny_id, size, db_cursor, logger):
 
 
 def insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, player_name, deck_name,
-                                 placement_url, db_cursor, logger):
+                                 placement_url, db_cursor, logger, prod_mode):
     """
     :param tourny_id:
     :param deck_archetype:
@@ -90,7 +90,7 @@ def insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, play
 
     warning_msg = f'Duplicate entry for tournament_entry attempted, for key {tourny_id}, {deck_archetype}, ' \
                   f'{deck_placement}, {player_name}'
-    su.execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
+    su.execute_query(insert_query_func, logger, warning_msg, prod_mode)
 
 
 def get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_name, db_cursor):
@@ -112,7 +112,7 @@ def get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_na
     return int(db_cursor.fetchone()[0])
 
 
-def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_cursor, logger):
+def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_cursor, logger, prod_mode):
     """
     :param entry_id:
     :param card_name:
@@ -132,4 +132,4 @@ def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_curso
         db_cursor.execute(insert_query, (entry_id, card_name, in_mainboard, quantity))
 
     warning_msg = f'Duplicate entry for entry_card attempted: key {entry_id}, {card_name}, {in_mainboard}, {quantity}'
-    su.execute_query_pass_on_unique_violation(insert_query_func, logger, warning_msg)
+    su.execute_query(insert_query_func, logger, warning_msg, prod_mode)

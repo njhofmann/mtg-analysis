@@ -24,6 +24,13 @@ def init_logging(log_file):
     return logger
 
 
+def execute_query(query_func, logger, warning_msg, prod_mode):
+    if prod_mode:
+        query_func()
+    else:
+        execute_query_pass_on_unique_violation(query_func, logger, warning_msg)
+
+
 def execute_query_pass_on_unique_violation(query_func, logger, warning_msg):
     """Wrapper function to execute around SQL insert queries functions being handled with psycopg2. If insert query would
     insert a entry with a primary key or unique key already in the database, catches the error psycopg2 would throw

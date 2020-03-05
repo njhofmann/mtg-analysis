@@ -26,7 +26,7 @@ def get_set_data(logger):
     return printing_info
 
 
-def insert_set_data(db_cursor, code, full_name, release_date, size, logger):
+def insert_set_data(db_cursor, code, full_name, release_date, size, logger, prod_mode):
     logger.info(f'Inserting set info for set {code}')
 
     def temp():
@@ -38,10 +38,10 @@ def insert_set_data(db_cursor, code, full_name, release_date, size, logger):
             sql.Identifier('size'))
         db_cursor.execute(insert_query, (code, full_name, release_date, size))
 
-    su.execute_query_pass_on_unique_violation(temp, logger, 'failed to retrieve set info')
+    su.execute_query(temp, logger, 'failed to retrieve set info', prod_mode)
 
 
-def get_stored_set_data(database, user, logger):
+def get_stored_set_data(database, user, logger, prod_mode):
     with psycopg2.connect(database=database, user=user) as conn:
         conn.autocommit = True
         with conn.cursor() as cursor:
@@ -60,13 +60,13 @@ def get_stored_set_data(database, user, logger):
                     full_name = info['name']
                     release_data = info['released_at']  # already in isodate form, year-month-day
                     size = info['card_count']
-                    insert_set_data(cursor, printing, full_name, release_data, size, logger)
+                    insert_set_data(cursor, printing, full_name, release_data, size, logger, prod_mode)
 
 
-def main():
+def main(prod_mode):
     logger = su.init_logging('scryfall_set_scrapper.log')
-    get_stored_set_data(dbr.DATABASE_NAME, dbr.USER, logger)
+    get_stored_set_data(dbr.DATABASE_NAME, dbr.USER, logger, prod_mode)
 
 
 if __name__ == '__main__':
-    main()
+    main(True)

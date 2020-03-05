@@ -35,7 +35,7 @@ def get_cards_and_printings(cursor):
     return cursor.fetchall()
 
 
-def insert_price_data(card, printing, price, date, is_paper, db_cursor, logger):
+def insert_price_data(card, printing, price, date, is_paper, db_cursor, logger, prod_mode):
     """Inserts the given instance of price data into the database of the associated cursor. An instance of price data is
     the price for the printing of a card on a given date.
     :param card: name of card
@@ -58,7 +58,7 @@ def insert_price_data(card, printing, price, date, is_paper, db_cursor, logger):
         db_cursor.execute(insert_query, (card, printing, date, price, is_paper))
 
     warning_msg = f'Duplicate price insertion into prices.printing for card {card} from printing {printing} on {date}'
-    su.execute_query_pass_on_unique_violation(price_insert_query, logger, warning_msg)
+    su.execute_query(price_insert_query, logger, warning_msg, prod_mode)
 
 
 def get_mtggoldfish_pricing_url(printing, card, foil):
@@ -166,7 +166,7 @@ def get_printing_prices(card_name, printing_code, printing, logger):
     return paper_prices, online_prices
 
 
-def get_and_store_prices(database, user, logger):
+def get_and_store_prices(database, user, logger, prod_mode):
     # all cards and printings in db
     with psycopg2.connect(database=database, user=user) as conn:
         conn.autocommit = True
@@ -179,13 +179,13 @@ def get_and_store_prices(database, user, logger):
                 # insert each price into database
                 for mapping, is_paper in ((paper_prices, True), (online_prices, False)):
                     for date, price in mapping.items():
-                        insert_price_data(name, printing_code, price, date, is_paper, cursor, logger)
+                        insert_price_data(name, printing_code, price, date, is_paper, cursor, logger, prod_mode)
 
 
-def main():
+def main(prod_mode):
     logger = su.init_logging('mtggoldfish_log.log')
-    get_and_store_prices(dbr.DATABASE_NAME, dbr.USER, logger)
+    get_and_store_prices(dbr.DATABASE_NAME, dbr.USER, logger, prod_mode)
 
 
 if __name__ == '__main__':
-    main()
+    main(False)

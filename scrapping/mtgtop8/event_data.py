@@ -24,7 +24,7 @@ def get_and_wait(url, data=None):
     return bs4.BeautifulSoup(markup=url_data.text, features='html.parser')
 
 
-def retrieve_and_parse(search_url, url_format, page, database, logger, user='postgres'):
+def retrieve_and_parse(search_url, url_format, page, database, logger, prod_mode, user=dbr.USER):
     """Given a search to a format's webpage on mtgtop8.com, pulls all tournaments and their related placement info and
     loads them into the given Postgres database. Pulls all tournament info, placements in each tournament, cards played
     in each entry, etc.
@@ -47,15 +47,15 @@ def retrieve_and_parse(search_url, url_format, page, database, logger, user='pos
 
                 if events:
                     for event_name, event_date, event_url in events:
-                        dbc.insert_into_tournament_info(event_name, event_date, url_format, event_url, cursor, logger)
+                        dbc.insert_into_tournament_info(event_name, event_date, url_format, event_url, cursor, logger, prod_mode)
                         tourny_id = dbc.get_tournament_info_id(event_name, event_date, url_format, event_url, cursor)
-                        parse_event(tourny_id, event_url, base_url, cursor, logger)
+                        parse_event(tourny_id, event_url, base_url, cursor, logger, prod_mode)
                     page += 1
                 else:
                     parsing = False
 
 
-def parse_event(tourny_id, event_url, base_url, db_cursor, logger):
+def parse_event(tourny_id, event_url, base_url, db_cursor, logger, prod_mode):
     """Given the url_data of a tournament on mtgtop8.com, pulls all decks that placed in the tournament and enters them into
     into the database of the given database cursor. Pulls player of each placement, the info of the deck they played,
     etc.
@@ -64,6 +64,7 @@ def parse_event(tourny_id, event_url, base_url, db_cursor, logger):
     :param base_url: base url to combine with parsed deck entry urls
     :param db_cursor: cursor of the database to insert info in
     :param logger: logger to log info with
+    :param prod_mode:
     :return: None"""
     url_data = get_and_wait(event_url)
     deck_parents, event_size = prs.get_event_info(url_data)
@@ -75,10 +76,10 @@ def parse_event(tourny_id, event_url, base_url, db_cursor, logger):
         entry_url_ending, deck_name, deck_rank, player_name = prs.get_event_entry_info(parent)
         entry_url = base_url + entry_url_ending
         logger.info('Fetching tournament entry {} from {}'.format(deck_name, entry_url))
-        parse_entry(tourny_id, entry_url, deck_name, deck_rank, player_name, db_cursor, logger)
+        parse_entry(tourny_id, entry_url, deck_name, deck_rank, player_name, db_cursor, logger, prod_mode)
 
 
-def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name, db_cursor, logger):
+def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name, db_cursor, logger, prod_mode):
     """Given the url to a deck placement for a tournament on mtgtop8.com, pull the ranked deck's info in the database of
     the given database cursor. Info such as played cards, card quantities, player name, ranking, etc.
     :param tourny_id: id of the tournament the deck was entered in
@@ -88,6 +89,7 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
     :param player_name: name of deck's pilot
     :param db_cursor: cursor of database info will be entered into
     :param logger: logger to log status of scrapping
+    :param prod_mode:
     :return: None"""
     url_soup = get_and_wait(placement_url)
 
@@ -99,7 +101,7 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
 
     # insert deck specific info (ie not card info)
     dbc.insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, player_name, deck_name, placement_url,
-                                     db_cursor, logger)
+                                     db_cursor, logger, prod_mode)
 
     # get unique id for entered deck, to use for entering
     entry_id = dbc.get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_name, db_cursor)
@@ -108,18 +110,25 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
     for card in cards:
         card_name, in_mainboard, quantity = prs.get_card_info(card)
         logger.info(f'Fetching card {card_name} from {entry_id}')
-        dbc.insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_cursor, logger)
+        dbc.insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_cursor, logger, prod_mode)
 
 
-def main():
-    urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 0),
+def main(prod_mode):
+    #('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 0),
+    urls_and_formats = [
                         ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 0),
-                        ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 0),
-                        ('https://www.mtgtop8.com/format?f=PI&meta=191', 'pioneer', 0)]
+                        ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 1),
+                        ('https://www.mtgtop8.com/format?f=PI&meta=191', 'pioneer', 1)]
     logger = init_logging('mtgtop8_scrapper.log')
     for url, url_format, page in urls_and_formats:
-        retrieve_and_parse(url, url_format, page, dbr.DATABASE_NAME, logger)
+        try:
+            retrieve_and_parse(url, url_format, page, dbr.DATABASE_NAME, logger, prod_mode)
+        except Exception as e:
+            if prod_mode:
+                logger.warning(str(e))
+            else:
+                raise e
 
 
 if __name__ == '__main__':
-    main()
+    main(False)

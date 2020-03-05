@@ -1,6 +1,6 @@
 import scrapping.scryfall.utility as ssu
 import psycopg2
-from scrapping.utility import execute_query_pass_on_unique_violation, init_logging
+import scrapping.utility as su
 from psycopg2 import sql
 import database.db_reader as dbr
 
@@ -40,7 +40,7 @@ def get_card_data(card_name, logger):
     return ssu.json_from_url(card_request_url)
 
 
-def parse_and_store(card_data, db_cursor, logger):
+def parse_and_store(card_data, db_cursor, logger, prod_mode):
     """
     Given a dictionary of data for a card, from attributes to attribute values - parses the dictionary such that all
     needed info is extracted and inserted into the appropriate table in the database
@@ -65,11 +65,11 @@ def parse_and_store(card_data, db_cursor, logger):
     if 'power' in card_data and 'toughness' in card_data:
         power = card_data['power']
         toughness = card_data['toughness']
-        insert_card_pt(name, power, toughness, db_cursor, logger)
+        insert_card_pt(name, power, toughness, db_cursor, logger, prod_mode)
 
     set_search_url = card_data['prints_search_uri']
     card_printings = get_card_printings(set_search_url)
-    insert_card_printings(name, card_printings, db_cursor, logger)
+    insert_card_printings(name, card_printings, db_cursor, logger, prod_mode)
 
 
 def get_card_printings(set_search_url):
@@ -84,7 +84,7 @@ def get_card_printings(set_search_url):
     return set([card['set'] for card in set_data])
 
 
-def insert_card_colors(card_name, colors, db_cursor, logger):
+def insert_card_colors(card_name, colors, db_cursor, logger, prod_mode):
     for color in colors:
         def insert_query():
             insert_query = ssu.get_n_item_insert_query(2).format(
@@ -95,10 +95,10 @@ def insert_card_colors(card_name, colors, db_cursor, logger):
 
         logger.info(f'Inserting color {color} for card {card_name}')
         warning_msg = f'Duplicate entry for card {card_name} with color {color}'
-        execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
+        su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
 
-def insert_card_pt(card_name, power, toughness, db_cursor, logger):
+def insert_card_pt(card_name, power, toughness, db_cursor, logger, prod_mode):
     def insert_query():
         insert_query = ssu.get_n_item_insert_query(3).format(
             sql.Identifier('cards', 'pt'),
@@ -109,10 +109,10 @@ def insert_card_pt(card_name, power, toughness, db_cursor, logger):
 
     logger.info(msg=f'Inserting power {power}, toughness {toughness} info for card {card_name}')
     warning_msg = f'Duplicate entry for for card {card_name} for power {power}, toughness {toughness}'
-    execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
+    su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
 
-def insert_card_text(card_name, text, db_cursor, logger):
+def insert_card_text(card_name, text, db_cursor, logger, prod_mode):
     def insert_query():
         insert_query = ssu.get_n_item_insert_query(2).format(
             sql.Identifier('cards', 'text'),
@@ -122,10 +122,10 @@ def insert_card_text(card_name, text, db_cursor, logger):
 
     logger.info(msg=f'Inserting card text for card {card_name}')
     warning_msg = f'Duplicate entry for card {card_name} and associated text'
-    execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
+    su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
 
-def insert_card_cmc(card_name, cmc, db_cursor, logger):
+def insert_card_cmc(card_name, cmc, db_cursor, logger, prod_mode):
     def insert_query():
         insert_query = ssu.get_n_item_insert_query(2).format(
             sql.Identifier('cards', 'cmc'),
@@ -135,10 +135,10 @@ def insert_card_cmc(card_name, cmc, db_cursor, logger):
 
     logger.info(msg=f'Inserting cmc {cmc} for card {card_name}')
     warning_msg = f'Duplicate entry for card {card_name} and cmc {cmc}'
-    execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
+    su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
 
-def insert_card_types(card_name, type_line, db_cursor, logger):
+def insert_card_types(card_name, type_line, db_cursor, logger, prod_mode):
     types = [card_type.lower() for card_type in type_line.split(' ') if card_type not in INVALID_TYPES]
     for card_type in types:
         def insert_query():
@@ -150,10 +150,10 @@ def insert_card_types(card_name, type_line, db_cursor, logger):
 
         logger.info(msg=f'Inserting type {card_name} for card {card_name}')
         warning_msg = f'Duplicate entry for card {card_name} with type {card_type}'
-        execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
+        su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
 
-def insert_card_printings(card_name, sets, db_cursor, logger):
+def insert_card_printings(card_name, sets, db_cursor, logger, prod_mode):
     for printing in sets:
         def insert_query():
             insert_query = ssu.get_n_item_insert_query(2).format(
@@ -164,10 +164,10 @@ def insert_card_printings(card_name, sets, db_cursor, logger):
 
         logger.info(msg=f'Inserting printing {printing} for card {card_name}')
         warning_msg = f'Duplicate entry for card {card_name} and printing {printing}'
-        execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
+        su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
 
-def get_stored_card_data(database, user, logger):
+def get_stored_card_data(database, user, logger, prod_mode):
     with psycopg2.connect(database=database, user=user) as conn:
         conn.autocommit = True
         with conn.cursor() as cursor:
@@ -177,13 +177,13 @@ def get_stored_card_data(database, user, logger):
             # for each card get data from Scryfall, then parse and store it appropriately
             for card in recorded_cards:
                 card_data = get_card_data(card, logger)
-                parse_and_store(card_data, cursor, logger)
+                parse_and_store(card_data, cursor, logger, prod_mode)
 
 
-def main():
-    logger = init_logging('scryfall_card_scapper.log')
-    get_stored_card_data(dbr.DATABASE_NAME, dbr.USER, logger)
+def main(prod_mode):
+    logger = su.init_logging('scryfall_card_scapper.log')
+    get_stored_card_data(dbr.DATABASE_NAME, dbr.USER, logger, prod_mode)
 
 
 if __name__ == '__main__':
-    main()
+    main(False)
