@@ -13,3 +13,5 @@ prevalence relate to price decline?  How long does it take for the price to rebo
 
 How have the prices for archetypes in non-rotating formats changed over time?
 -Get prices for each deck, plot
+
+Color, archetype popularity overtime

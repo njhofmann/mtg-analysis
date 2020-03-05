@@ -22,7 +22,8 @@ def get_cards_in_db(db_cursor, logger):
     """
     logger.info(msg='Getting list of cards to retrieve info for')
     card_query = sql.SQL('SELECT DISTINCT({}) FROM {}').format(
-        sql.Identifier('card'), sql.Identifier('events', 'entry_card'))
+        sql.Identifier('card'),
+        sql.Identifier('events', 'entry_card'))
     db_cursor.execute(card_query)
     return [card for card in map(lambda x: x[0], db_cursor.fetchall()) if card not in INVALID_CARDS]
 
@@ -33,7 +34,7 @@ def get_card_data(card_name, logger):
     :param card_name: (String) name of card to retrieve data for
     :return: (dictionary) dictionary of data associated with given card
     """
-    logger.info(msg='Retrieving data for card {}'.format(card_name))
+    logger.info(msg=f'Retrieving data for card {card_name}')
     formatted_card_name = map(lambda x: x.lower(), card_name.split(' '))
     card_request_url = SCRYFALL_ENDPOINT + '?exact=' + '+'.join(formatted_card_name)
     return ssu.json_from_url(card_request_url)
@@ -87,44 +88,53 @@ def insert_card_colors(card_name, colors, db_cursor, logger):
     for color in colors:
         def insert_query():
             insert_query = ssu.get_n_item_insert_query(2).format(
-                sql.Identifier('cards', 'colors'), sql.Identifier('card'), sql.Identifier('color'))
+                sql.Identifier('cards', 'colors'),
+                sql.Identifier('card'),
+                sql.Identifier('color'))
             db_cursor.execute(insert_query, (card_name, color.lower()))
 
-        logger.info('Inserting color {} for card {}'.format(color, card_name))
-        warning_msg = 'Duplicate entry for card {} with color {}'.format(card_name, color)
+        logger.info(f'Inserting color {color} for card {card_name}')
+        warning_msg = f'Duplicate entry for card {card_name} with color {color}'
         execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
 
 
 def insert_card_pt(card_name, power, toughness, db_cursor, logger):
     def insert_query():
         insert_query = ssu.get_n_item_insert_query(3).format(
-            sql.Identifier('cards', 'pt'), sql.Identifier('card'), sql.Identifier('power'), sql.Identifier('toughness'))
+            sql.Identifier('cards', 'pt'),
+            sql.Identifier('card'),
+            sql.Identifier('power'),
+            sql.Identifier('toughness'))
         db_cursor.execute(insert_query, (card_name, power, toughness))
 
-    logger.info(msg='Inserting power {}, toughness {} info for card {}'.format(power, toughness, card_name))
-    warning_msg = 'Duplicate entry for for card {} for power {}, toughness {}'.format(card_name, power, toughness)
+    logger.info(msg=f'Inserting power {power}, toughness {toughness} info for card {card_name}')
+    warning_msg = f'Duplicate entry for for card {card_name} for power {power}, toughness {toughness}'
     execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
 
 
 def insert_card_text(card_name, text, db_cursor, logger):
     def insert_query():
         insert_query = ssu.get_n_item_insert_query(2).format(
-            sql.Identifier('cards', 'text'), sql.Identifier('card'), sql.Identifier('text'))
+            sql.Identifier('cards', 'text'),
+            sql.Identifier('card'),
+            sql.Identifier('text'))
         db_cursor.execute(insert_query, (card_name, text))
 
-    logger.info(msg='Inserting card text for card {}'.format(card_name))
-    warning_msg = 'Duplicate entry for card {} and assoicated text'.format(card_name)
+    logger.info(msg=f'Inserting card text for card {card_name}')
+    warning_msg = f'Duplicate entry for card {card_name} and associated text'
     execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
 
 
 def insert_card_cmc(card_name, cmc, db_cursor, logger):
     def insert_query():
         insert_query = ssu.get_n_item_insert_query(2).format(
-            sql.Identifier('cards', 'cmc'), sql.Identifier('card'), sql.Identifier('cmc'))
+            sql.Identifier('cards', 'cmc'),
+            sql.Identifier('card'),
+            sql.Identifier('cmc'))
         db_cursor.execute(insert_query, (card_name, cmc))
 
-    logger.info(msg='Inserting cmc {} for card {}'.format(cmc, card_name))
-    warning_msg = 'Duplicate entry for card {} and cmc {}'.format(card_name, cmc)
+    logger.info(msg=f'Inserting cmc {cmc} for card {card_name}')
+    warning_msg = f'Duplicate entry for card {card_name} and cmc {cmc}'
     execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
 
 
@@ -133,11 +143,13 @@ def insert_card_types(card_name, type_line, db_cursor, logger):
     for card_type in types:
         def insert_query():
             insert_query = ssu.get_n_item_insert_query(2).format(
-                sql.Identifier('cards', 'types'), sql.Identifier('card'), sql.Identifier('type'))
+                sql.Identifier('cards', 'types'),
+                sql.Identifier('card'),
+                sql.Identifier('type'))
             db_cursor.execute(insert_query, (card_name, card_type))
 
-        logger.info(msg='Inserting type {} for card {}'.format(card_name, card_type))
-        warning_msg = 'Duplicate entry for card {} with type {}'.format(card_name, card_type)
+        logger.info(msg=f'Inserting type {card_name} for card {card_name}')
+        warning_msg = f'Duplicate entry for card {card_name} with type {card_type}'
         execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
 
 
@@ -145,11 +157,13 @@ def insert_card_printings(card_name, sets, db_cursor, logger):
     for printing in sets:
         def insert_query():
             insert_query = ssu.get_n_item_insert_query(2).format(
-                sql.Identifier('cards', 'printings'), sql.Identifier('card'), sql.Identifier('set'))
+                sql.Identifier('cards', 'printings'),
+                sql.Identifier('card'),
+                sql.Identifier('set'))
             db_cursor.execute(insert_query, (card_name, printing))
 
-        logger.info(msg='Inserting printing {} for card'.format(card_name, printing))
-        warning_msg = 'Duplicate entry for card {} and printing {}'.format(card_name, printing)
+        logger.info(msg=f'Inserting printing {printing} for card {card_name}')
+        warning_msg = f'Duplicate entry for card {card_name} and printing {printing}'
         execute_query_pass_on_unique_violation(insert_query, logger, warning_msg)
 
 
@@ -166,6 +180,10 @@ def get_stored_card_data(database, user, logger):
                 parse_and_store(card_data, cursor, logger)
 
 
-if __name__ == '__main__':
+def main():
     logger = init_logging('scryfall_card_scapper.log')
     get_stored_card_data(dbr.DATABASE_NAME, dbr.USER, logger)
+
+
+if __name__ == '__main__':
+    main()

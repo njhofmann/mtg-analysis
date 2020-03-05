@@ -124,7 +124,6 @@ def get_event_entry_info(entry_soup):
 def get_deck_archetype_as_imgs(entry_soup):
     parent_class = entry_soup.find(class_='S16')
     imgs = parent_class.find_all(src=DECK_ARCHETYPE_IMG_REGEX)
-    print(''.join(sorted([child['src'].split('.')[0][-1] for child in imgs])))
     return ''.join(sorted([child['src'].split('.')[0][-1] for child in imgs]))
 
 

@@ -1,4 +1,7 @@
 ### MTGTop8 parser
+* production vs dev mode
+    * prod: kill parsing for format when dup entry detected
+    * dev: keep parsing over any dup entries
 * pioneer scrapping
 * upto date scrapping for existing formats
 * automatically stopping parsing (errors?)
@@ -26,8 +29,11 @@
 * connect to outside db
 * automated docker compose file (keep order in mind_)
 
-### misc
+### Style
 * data types
+* f-strings
+* sql format calls, one per line
+### misc
 * get tcgplayer api key
 * Redo entries for "unknown cards"
 * Documentation

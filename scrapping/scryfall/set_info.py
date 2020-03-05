@@ -31,8 +31,11 @@ def insert_set_data(db_cursor, code, full_name, release_date, size, logger):
 
     def temp():
         insert_query = ssu.get_n_item_insert_query(4).format(
-            sql.Identifier('cards', 'set_info'), sql.Identifier('set'), sql.Identifier('full_name'),
-            sql.Identifier('release'), sql.Identifier('size'))
+            sql.Identifier('cards', 'set_info'),
+            sql.Identifier('set'),
+            sql.Identifier('full_name'),
+            sql.Identifier('release'),
+            sql.Identifier('size'))
         db_cursor.execute(insert_query, (code, full_name, release_date, size))
 
     su.execute_query_pass_on_unique_violation(temp, logger, 'failed to retrieve set info')
@@ -60,6 +63,10 @@ def get_stored_set_data(database, user, logger):
                     insert_set_data(cursor, printing, full_name, release_data, size, logger)
 
 
-if __name__ == '__main__':
+def main():
     logger = su.init_logging('scryfall_set_scrapper.log')
     get_stored_set_data(dbr.DATABASE_NAME, dbr.USER, logger)
+
+
+if __name__ == '__main__':
+    main()
