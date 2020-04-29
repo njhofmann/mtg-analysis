@@ -1,4 +1,4 @@
-from questions.utility import generic_search
+from analysis.utility import generic_search
 
 """Collection of queries showing errors / malformed data in the database"""
 

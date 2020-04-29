@@ -1,4 +1,4 @@
-import questions.utility as qu
+import analysis.utility as qu
 from psycopg2 import sql
 
 """Collection of queries for drawing together useful collections of data for analysis"""

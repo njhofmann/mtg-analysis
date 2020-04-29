@@ -41,18 +41,16 @@ def get_card_data(card_name, logger):
 
 
 def parse_and_store(card_data, db_cursor, logger, prod_mode):
-    """
-    Given a dictionary of data for a card, from attributes to attribute values - parses the dictionary such that all
+    """Given a dictionary of data for a card, from attributes to attribute values - parses the dictionary such that all
     needed info is extracted and inserted into the appropriate table in the database
     :param card_data: (JSON like dict)
     :param db_cursor: (P
-    :return:
-    """
+    :return:"""
     name = card_data['name']
 
     def check_and_add(attribute, insert_func):
         if attribute in card_data:
-            insert_func(name, card_data[attribute], db_cursor, logger)
+            insert_func(name, card_data[attribute], db_cursor, logger, prod_mode)
 
     check_and_add('cmc', insert_card_cmc)
     check_and_add('type_line', insert_card_types)

@@ -114,9 +114,8 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
 
 
 def main(prod_mode):
-    #('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 0),
-    urls_and_formats = [
-                        ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 0),
+    urls_and_formats = [('https://www.mtgtop8.com/format?f=MO&meta=44', 'modern', 0),
+                        ('https://www.mtgtop8.com/format?f=LE&meta=16', 'legacy', 1),
                         ('https://www.mtgtop8.com/format?f=ST&meta=58', 'standard', 1),
                         ('https://www.mtgtop8.com/format?f=PI&meta=191', 'pioneer', 1)]
     logger = init_logging('mtgtop8_scrapper.log')
@@ -131,4 +130,4 @@ def main(prod_mode):
 
 
 if __name__ == '__main__':
-    main(False)
+    main(True)

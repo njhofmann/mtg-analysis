@@ -58,6 +58,7 @@ def insert_price_data(card, printing, price, date, is_paper, db_cursor, logger, 
         db_cursor.execute(insert_query, (card, printing, date, price, is_paper))
 
     warning_msg = f'Duplicate price insertion into prices.printing for card {card} from printing {printing} on {date}'
+    logger.info(f'Inserting card price for card {card}, printing {printing} on {date}')
     su.execute_query(price_insert_query, logger, warning_msg, prod_mode)
 
 
@@ -88,6 +89,7 @@ def format_printing_name(printing):
         return printing + ' Core Set'
     elif 'Commander 2011' == printing:
         return 'Commander'
+    return printing
 
 
 def format_for_url(name):
