@@ -12,6 +12,7 @@
 * get prices from last few months
 
 ### DB Schemas
+* on delete cascade
 * Add format periods and legal blocks
 * Table desps how?
 * Remove '-' type key
