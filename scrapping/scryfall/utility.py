@@ -11,8 +11,7 @@ REQUEST_DELAY = .1
 
 
 def json_from_url(url):
-    """
-    Given a url that sends back JSON data upon a GET request, sends a GET request for it's JSON data, loads it, then
+    """Given a url that sends back JSON data upon a GET request, sends a GET request for it's JSON data, loads it, then
     returns it.
     :param url: url to retrieve data from
     :return: decoded JSON data from given url
@@ -27,8 +26,7 @@ def json_from_url(url):
 
 
 def get_distinct_column_from_table(db_cursor, table, column):
-    """
-    Returns all the distinct info in the given column of the given table, in the database represented by the given
+    """Returns all the distinct info in the given column of the given table, in the database represented by the given
     database cursor.
     :param db_cursor: cursor of the database from which to draw data
     :param table: name of the table to draw data from, expected as a list of strings to account for additional schema
@@ -43,8 +41,7 @@ def get_distinct_column_from_table(db_cursor, table, column):
 
 
 def get_n_item_insert_query(n):
-    """
-    Returns a 'blank' SQL insert query capable of inserting n items into n columns, SQL query is wrapped around
+    """Returns a 'blank' SQL insert query capable of inserting n items into n columns, SQL query is wrapped around
     psycopg2's SQL builder.
     :param n: number of items query should be capable of supporting
     :return: blank SQL insert query capable of inserting n items into a table

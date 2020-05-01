@@ -3,14 +3,12 @@ from psycopg2 import sql
 
 
 def create_new_db(db_name, init_file, user='postgres'):
-    """
-    Creates a new instance of a database of the given name, using the schemas in the given initialization file. Deletes
-    any existing files that match the given name.
+    """Creates a new instance of a database of the given name, using the schemas in the given initialization file.
+    Deletes any existing files that match the given name.
     :param db_name: name of the database
     :param init_file: path to the initialization file
     :param user:
-    :return: None
-    """
+    :return: None """
     # create connection, set isolation level to create db, and create cursor
     with psycopg2.connect(user=user) as con:
         con.autocommit = True

@@ -5,10 +5,14 @@ cffi==1.14.0
 chardet==3.0.4
 cryptography==2.7
 idna==2.8
+numpy==1.18.3
+pandas==1.0.3
 psycopg2-binary==2.8.4
 pycparser==2.19
 pyOpenSSL==19.0.0
 PySocks==1.7.0
+python-dateutil==2.8.1
+pytz==2020.1
 PyYAML==5.1.2
 requests==2.22.0
 six==1.12.0

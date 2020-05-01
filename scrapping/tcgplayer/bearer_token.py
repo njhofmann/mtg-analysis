@@ -7,11 +7,12 @@ import yaml
 # Constants
 TCGPLAYER_TOKEN_URL = 'https://api.tcgplayer.com/token'
 
+
 def get_new_bearer_token(tcgplayer_info, bearer_info):
-    """
-    Requests a new bearer token from the TCGPlayer API using the private and public keys listed under
+    """Requests a new bearer token from the TCGPlayer API using the private and public keys listed under
     'tcgplayer-info.yaml'. Stores the new bearer token and related info under 'bearer-token-info.yaml'.
-    :
+    :param tcgplayer_info:
+    :param bearer_info:
     :return: None
     """
     with open(tcgplayer_info, 'r') as key_info:

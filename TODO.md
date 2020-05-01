@@ -1,8 +1,4 @@
 ### MTGTop8 parser
-* production vs dev mode
-    * prod: kill parsing for format when dup entry detected
-    * dev: keep parsing over any dup entries
-* pioneer scrapping
 * upto date scrapping for existing formats
 * automatically stopping parsing (errors?)
 * header file for scrapper
@@ -22,7 +18,7 @@
 * Update database tables and namings
 
 ### TCGPlayer
-* look into drawing prices for 
+* look into drawing prices for price hikes or trends
 
 ### Docker
 * dockerize data scrappers
@@ -31,9 +27,13 @@
 * automated docker compose file (keep order in mind_)
 
 ### Style
-* data types
+* data types / type hints
 * f-strings
 * sql format calls, one per line
+* DOCUMENT EVERYTHING!!!
+
+### Questions
+* curve fitting / smoothing
 
 ### misc
 * get tcgplayer api key
@@ -46,4 +46,3 @@
 
 * How to build data sheet
 * Constants file
-* What queries to run to gather data

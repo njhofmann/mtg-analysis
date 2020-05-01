@@ -13,9 +13,8 @@ INVALID_TYPES = ['-', '//', 'ù']
 
 
 def get_cards_in_db(db_cursor, logger):
-    """
-    Retrieves a list of all the card names that have appeared in one or more tournament level decks in the database of
-    the given cursor under the 'entry_card' table.
+    """Retrieves a list of all the card names that have appeared in one or more tournament level decks in the database
+    of the given cursor under the 'entry_card' table.
     :param: db_cursor:
     :param: logger:
     :return: list of all card name that have appeared in tournament level play
@@ -29,8 +28,7 @@ def get_cards_in_db(db_cursor, logger):
 
 
 def get_card_data(card_name, logger):
-    """
-    Retrieves the data around a given card from the Scryfall API and returns it as a dictionary.
+    """Retrieves the data around a given card from the Scryfall API and returns it as a dictionary.
     :param card_name: (String) name of card to retrieve data for
     :return: (dictionary) dictionary of data associated with given card
     """
@@ -71,9 +69,8 @@ def parse_and_store(card_data, db_cursor, logger, prod_mode):
 
 
 def get_card_printings(set_search_url):
-    """
-    Given the url listing the data for every set an associated card has been printed in, returns a list of each set the
-    card was printed in.
+    """Given the url listing the data for every set an associated card has been printed in, returns a list of each set
+    the card was printed in.
     :param set_search_url: url to retrieve card set data from
     :return: list of sets card associated with url has been printed in
     """
@@ -139,16 +136,17 @@ def insert_card_cmc(card_name, cmc, db_cursor, logger, prod_mode):
 def insert_card_types(card_name, type_line, db_cursor, logger, prod_mode):
     types = [card_type.lower() for card_type in type_line.split(' ') if card_type not in INVALID_TYPES]
     for card_type in types:
-        def insert_query():
-            insert_query = ssu.get_n_item_insert_query(2).format(
-                sql.Identifier('cards', 'types'),
-                sql.Identifier('card'),
-                sql.Identifier('type'))
-            db_cursor.execute(insert_query, (card_name, card_type))
+        if card_type != '—':
+            def insert_query():
+                insert_query = ssu.get_n_item_insert_query(2).format(
+                    sql.Identifier('cards', 'types'),
+                    sql.Identifier('card'),
+                    sql.Identifier('type'))
+                db_cursor.execute(insert_query, (card_name, card_type))
 
-        logger.info(msg=f'Inserting type {card_name} for card {card_name}')
-        warning_msg = f'Duplicate entry for card {card_name} with type {card_type}'
-        su.execute_query(insert_query, logger, warning_msg, prod_mode)
+            logger.info(msg=f'Inserting type {card_name} for card {card_name}')
+            warning_msg = f'Duplicate entry for card {card_name} with type {card_type}'
+            su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
 
 def insert_card_printings(card_name, sets, db_cursor, logger, prod_mode):

@@ -6,14 +6,12 @@ import database.db_reader as dbr
 
 
 def create_dump(db_name, backup_name, user):
-    """
-    Creates a text dump of the given database as the given user, with the given file name. Used to create backups of
+    """Creates a text dump of the given database as the given user, with the given file name. Used to create backups of
     the desired database. Prints any errors that may occur during process.
     :param db_name: name of the database to dump
     :param backup_name: name of created dump file
     :param user: user to login into database as
-    :return: None
-    """
+    :return: None"""
     command = ['pg_dump', '-d', db_name, '-f', backup_name, '-U', user]
     process = sbp.Popen(args=command, stdout=sbp.PIPE, stderr=sbp.PIPE)
     process.wait()
@@ -28,8 +26,8 @@ def create_dump(db_name, backup_name, user):
         print(out)
 
     zip_file = backup_name.split('.')[0] + '.zip'
-    with zp.ZipFile(zip_file, 'w') as zip:
-        zip.write(backup_name)
+    with zp.ZipFile(zip_file, 'w') as z:
+        z.write(backup_name)
 
 
 if __name__ == '__main__':

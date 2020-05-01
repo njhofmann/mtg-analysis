@@ -1,7 +1,11 @@
 # mtg-analysis
-Data analysis and modeling of competitive level play and card prices for Magic: The Gathering, over time.
+Time series analysis and modeling of competitive level play and card prices for Magic: The Gathering.
 
 # Motivating Questions
+
+* How have the prices for decks in non-rotating formats changed over time?
+
+* How have format metagames changed over time?
 
 * What is the relationship between the price of new MTG cards (hype / chase cards vs sleeper / overlooked cards) over 
 time in relation to their subsequent prevalence in relevant metagames?
@@ -10,10 +14,6 @@ time in relation to their subsequent prevalence in relevant metagames?
 
 * How much of an impact do reprints have on the price of MTG cards over time? How does print size and rarity relate to 
 price decline?  How long does it take for the price to rebound to pre-reprint levels?
-
-* How have the prices for decks in non-rotating formats changed over time?
-
-* How have format metagames changed over time?
 
 # 3D Party Libraries
 * Data stored with [Postgres 11.5](https://www.postgresql.org/)
