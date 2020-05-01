@@ -119,4 +119,4 @@ scrapping/tcgplayer/bearer-token-info.yaml
 *.zip
 
 # created pics
-analysis/metagame_comp/modern/**/*.png
+*.png

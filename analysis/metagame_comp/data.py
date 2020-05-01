@@ -1,9 +1,11 @@
 import analysis.utility as qu
-from psycopg2 import sql
 import pandas as pd
+import argparse as ap
+import scipy.interpolate as spi
 import matplotlib.pyplot as plt
+import numpy as np
 import matplotlib.dates as mpd
-from typing import Tuple, List
+from typing import Tuple, List, Iterable, Sized
 import pathlib as pl
 
 """Collection of queries for drawing together useful collections of data for analysis"""
@@ -33,15 +35,44 @@ def create_pic_dirc(format: str, start_date: str, end_date: str) -> pl.Path:
     return dirc
 
 
+def spline_estimate(x: np.array, y: np.array) -> np.array:
+    return spi.UnivariateSpline(x=x, y=y, k=4)(x)
+
+
+def to_matplotlib_dates(dates: Iterable[str]) -> List[float]:
+    return [mpd.datestr2num(date) for date in dates]
+
+
+def fill_in_y_axis(all_dates: List[float], dates: List[float], y_data: np.array) -> np.array:
+    date_to_data = {dates[idx]: y_data[idx] for idx in range(len(dates))}
+    new_y_data = np.zeros(len(all_dates), dtype='d')
+    for idx, date in enumerate(all_dates):
+        new_y_data[idx] = date_to_data[date] if date in date_to_data.keys() else 0
+    return new_y_data
+
+
 def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
     archetype_groups = metagame_comps.groupby('archetype')
+    all_dates = to_matplotlib_dates(metagame_comps['date'])
     for archetype, group in archetype_groups:
-        dates = [mpd.datestr2num(date) for date in group['date']]
-        plt.plot_date(x=dates, y=group['percentage'], xdate=True, linestyle='-', marker=',')
-        plt.xlabel('Date')
-        plt.ylabel('Percentage')
+        fig, axes = plt.subplots()
+        dates = to_matplotlib_dates(group['date'])
+
+        extended_percentages = fill_in_y_axis(all_dates, dates, list(spline_estimate(dates, group['percentage'])))
+
+        #percentages = spline_estimate(dates, group['percentage'])
+
+        plt.plot_date(x=all_dates, y=spline_estimate(all_dates, extended_percentages), xdate=True, linestyle='-', marker=',', color='blue')
+        #plt.plot_date(x=dates, y=group['percentage'], xdate=True, linestyle='-', marker=',', color='orange')
+        plt.plot_date(x=dates, y=spline_estimate(dates, group['percentage']), linestyle='-', marker=',', color='r')
+
         title = ' '.join([word.capitalize() for word in archetype.split(' ')])
         plt.title(title)
+        plt.xlabel('Date')
+        plt.ylabel('Metagame Percentage')
+        plt.setp(axes.get_xticklabels(), rotation=30, horizontalalignment='right')
+        plt.tight_layout()
+
         archetype = archetype.replace(' ', '_')
         archetype = archetype.replace('/', '\\')
         save_name = '_'.join([word.lower() for word in archetype.split(' ')])
@@ -49,7 +80,8 @@ def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None
         if save_name:
             save_path = save_dirc.joinpath(save_name)
             plt.savefig(save_path)
-        plt.clf()
+
+        plt.close(fig)
 
 
 if __name__ == '__main__':
