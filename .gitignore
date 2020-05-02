@@ -115,7 +115,7 @@ scrapping/tcgplayer/bearer-token-info.yaml
 *.log
 
 # db files
-*.sql
+database/db_backup.sql
 *.zip
 
 # created pics

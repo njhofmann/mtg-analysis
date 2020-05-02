@@ -10,6 +10,8 @@ import pathlib as pl
 
 """Collection of queries for drawing together useful collections of data for analysis"""
 
+SPLINE_DEGREE = 4
+
 
 def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str, int]]:
     """Retrieves the metagame composition, at the archetype level, for the given format starting at 'date' - 'length'
@@ -23,6 +25,15 @@ def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str
 
 
 def metagame_comp_over_time(start_date: str, end_date: str, length: int, mtg_format: str) -> pd.DataFrame:
+    """Returns a Dataframe containing metagame compositions from the given start date to end date, over rolling periods
+    of 'length' days, for the given format. For each day between the start and end, returns the metagame makeup for that
+    day and the past 'length' days. Each row in returned dataframe contains date, archetype, and percentage that
+    archetype made up in metagame on that day
+    :param start_date: dates to start from
+    :param end_date: date to end at
+    :param length: how many previous days to consider in metgame makeup for a given day
+    :param mtg_format: format to search under
+    :return: Dataframe with metagame compositions over time"""
     dates_to_metagames = {date: get_metagame_comp(date, length, mtg_format)
                           for date in qu.date_range(start_date, end_date, length)}
     rows = [(date, *metagame) for date, metagames in dates_to_metagames.items() for metagame in metagames]
@@ -30,20 +41,41 @@ def metagame_comp_over_time(start_date: str, end_date: str, length: int, mtg_for
 
 
 def create_pic_dirc(format: str, start_date: str, end_date: str) -> pl.Path:
+    """Returns, and creates if needed, a series of directories to store search results under when searching under the
+    given path - from start date to end date
+    :param format: MTG format that was searched under
+    :param start_date: date the search was started
+    :param end_date: date the search was ended
+    :return: Path containing the resulting directory"""
     dirc = pl.Path(f'{format}/{start_date}_to_{end_date}')
     dirc.mkdir(parents=True, exist_ok=True)
     return dirc
 
 
 def spline_estimate(x: np.array, y: np.array) -> np.array:
-    return spi.UnivariateSpline(x=x, y=y, k=4)(x)
+    """Returns a single variable spline for the given x & y data, fitting a spline function to x & y - but then
+    returning the spline estimate on x
+    :param x: 1D array of x data
+    :param y: 1D array of y data
+    :return: spline estimate of x, from function fitted to x & y"""
+    return spi.UnivariateSpline(x=x, y=y, k=SPLINE_DEGREE)(x)
 
 
 def to_matplotlib_dates(dates: Iterable[str]) -> List[float]:
+    """Converts a series of String dates in the form of "year-month-day" into Matplotlib dates
+    :param dates: series of String dates
+    :return: converted series of dates"""
     return [mpd.datestr2num(date) for date in dates]
 
 
 def extend_y_data(all_dates: List[float], dates: List[float], y_data: np.array) -> Tuple[np.array, np.array]:
+    """
+
+    :param all_dates:
+    :param dates:
+    :param y_data:
+    :return:
+    """
     min_date = min(all_dates)  # TODO [0], [-1]?
     max_date = max(all_dates)
     sorted_dates = sorted(all_dates)
@@ -137,6 +169,12 @@ def extend_y_data(all_dates: List[float], dates: List[float], y_data: np.array) 
 
 
 def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
+    """
+
+    :param metagame_comps:
+    :param save_dirc:
+    :return:
+    """
     archetype_groups = metagame_comps.groupby('archetype')
     all_dates = to_matplotlib_dates(metagame_comps['date'])
     plot_args = {'linestyle': '-', 'marker': ',', 'xdate': True}
@@ -146,12 +184,12 @@ def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None
         percents = group['percentage'].to_numpy(dtype=np.float)
 
         fitted_percents = spline_estimate(dates, percents)
-        extended_percentages, some_dates = extend_y_data(all_dates, dates, percents)
-        fitted_extended_percents = spline_estimate(some_dates, extended_percentages)
+        extended_percents, some_dates = extend_y_data(all_dates, dates, percents)
+        fitted_extended_percents = spline_estimate(some_dates, extended_percents)
 
         axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', **plot_args)
         axes.plot_date(x=dates, y=fitted_percents, color='orange', label='Fitted Points', **plot_args)
-        axes.plot_date(x=some_dates, y=fitted_extended_percents, color='purple', label='Extended Fitted Points', **plot_args)
+        axes.plot_date(x=some_dates, y=fitted_extended_percents, color='p', label='Extended Fitted Points', **plot_args)
         axes.legend()
 
         title = ' '.join([word.capitalize() for word in archetype.split(' ')])
@@ -161,8 +199,7 @@ def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None
         plt.setp(axes.get_xticklabels(), rotation=30, horizontalalignment='right')
         plt.tight_layout()
 
-        archetype = archetype.replace(' ', '_')
-        archetype = archetype.replace('/', '\\')
+        archetype = archetype.replace(' ', '_').replace('/', '\\')
         save_name = '_'.join([word.lower() for word in archetype.split(' ')])
 
         if save_name:
