@@ -15,12 +15,18 @@ time in relation to their subsequent prevalence in relevant metagames?
 * How much of an impact do reprints have on the price of MTG cards over time? How does print size and rarity relate to 
 price decline?  How long does it take for the price to rebound to pre-reprint levels?
 
-# 3D Party Libraries
-* Data stored with [Postgres 11.5](https://www.postgresql.org/)
-* Database interfacing with [psycopg2 2.3.8](https://pypi.org/project/psycopg2/).
-* Web scrapping and API calls done with [Requests](https://2.python-requests.org/en/master/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).
+# Contributions
 
-# Data Acknowledgements
-* Tournament data drawn from [mtgtop8.com](mtgtop8.com).
-* Financial data drawn from [MTGGoldfish](mtggoldfish.com)
-* Card info drawn from the [Scryfall API](https://scryfall.com/docs/api).
+* Unified database of MTG tournament results, prices, and card info.
+
+* Visualization and prediction of for competitive metagame composition, pricing, reprints, and other areas.
+
+# 3D Party Libraries
+* Data storage and interfacing provided by [Postgres 11.5](https://www.postgresql.org/) and [psycopg2 2.3.8](https://pypi.org/project/psycopg2/).
+* Web scrapping and API calls with [Requests](https://2.python-requests.org/en/master/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).``
+* Data visualization provided by [Matplotlib](https://matplotlib.org/).
+
+# Data Sources
+* Tournament data from [mtgtop8](mtgtop8.com).
+* Pricing data from [MTGGoldfish](mtggoldfish.com)
+* Card info from the [Scryfall API](https://scryfall.com/docs/api).

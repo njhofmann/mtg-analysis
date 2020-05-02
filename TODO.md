@@ -33,7 +33,8 @@
 * DOCUMENT EVERYTHING!!!
 
 ### Questions
-* curve fitting / smoothing
+* argparser
+* scientific computations and machine learning contributions
 
 ### misc
 * get tcgplayer api key

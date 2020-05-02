@@ -1,16 +1,18 @@
 import analysis.utility as qu
 import pandas as pd
-import argparse as ap
 import scipy.interpolate as spi
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime as dt
 import matplotlib.dates as mpd
 from typing import Tuple, List, Iterable, Sized
 import pathlib as pl
+import sys
 
 """Collection of queries for drawing together useful collections of data for analysis"""
 
 SPLINE_DEGREE = 4
+DEFAULT_DAY_LENGTH = 21  # 3 weeks
 
 
 def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str, int]]:
@@ -187,10 +189,10 @@ def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None
         extended_percents, some_dates = extend_y_data(all_dates, dates, percents)
         fitted_extended_percents = spline_estimate(some_dates, extended_percents)
 
-        axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', **plot_args)
-        axes.plot_date(x=dates, y=fitted_percents, color='orange', label='Fitted Points', **plot_args)
-        axes.plot_date(x=some_dates, y=fitted_extended_percents, color='p', label='Extended Fitted Points', **plot_args)
-        axes.legend()
+        #axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', **plot_args)
+        #axes.plot_date(x=dates, y=fitted_percents, color='g', label='Fitted Points', **plot_args)
+        axes.plot_date(x=some_dates, y=fitted_extended_percents, color='b', label='Extended Fitted Points', **plot_args)
+        #axes.legend()
 
         title = ' '.join([word.capitalize() for word in archetype.split(' ')])
         plt.title(title)
@@ -209,11 +211,28 @@ def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None
         plt.close(fig)
 
 
-if __name__ == '__main__':
-    start_date = '2018-03-13'
-    end_date = '2019-05-01'
-    mtg_format = 'modern'
-    data = metagame_comp_over_time(start_date, end_date, 21, 'modern')
+def main(start_date: str, end_date: str, mtg_format: str, length: int) -> None:
+    data = metagame_comp_over_time(start_date, end_date, length, mtg_format)
     title_path = create_pic_dirc(mtg_format, start_date, end_date)
-    title = f'{{archetype}}'
     plot_metagame_comp(data, title_path)
+
+
+def parse_args() -> Tuple[str, str, str, int]:
+    args = sys.argv
+
+    def valid_date(date: str) -> str:
+        try:
+            return dt.datetime.strptime(date, '%Y-%M-%d').strftime('%Y-%M-%d')
+        except ValueError as e:
+            raise ValueError(f'date must be in form of "year-month-day"')
+
+    if len(args) not in (4, 5):
+        raise ValueError(f'usage {args[0]}: start-date, end-date, format, length (optional)')
+
+    length = DEFAULT_DAY_LENGTH if len(args) == 4 else int(args[-1])
+
+    return valid_date(args[1]), valid_date(args[2]), args[3], length
+
+
+if __name__ == '__main__':
+    main(*parse_args())
