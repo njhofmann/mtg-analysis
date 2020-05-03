@@ -1,18 +1,21 @@
 import analysis.utility as qu
-import pandas as pd
-import scipy.interpolate as spi
-import matplotlib.pyplot as plt
-import numpy as np
+
 import datetime as dt
-import matplotlib.dates as mpd
-from typing import Tuple, List, Iterable, Sized
+from typing import Tuple, List, Iterable, Generator
 import pathlib as pl
 import sys
 
+import matplotlib.dates as mpd
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scipy.interpolate as spi
+import scipy.stats as scs
+
 """Collection of queries for drawing together useful collections of data for analysis"""
 
-SPLINE_DEGREE = 4
-DEFAULT_DAY_LENGTH = 7  # 3 weeks
+SPLINE_DEGREE = 2
+DEFAULT_DAY_LENGTH = 14  # 3 weeks
 
 
 def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str, int]]:
@@ -39,7 +42,10 @@ def metagame_comp_over_time(start_date: str, end_date: str, length: int, mtg_for
     dates_to_metagames = {date: get_metagame_comp(date, length, mtg_format)
                           for date in qu.date_range(start_date, end_date, length)}
     rows = [(date, *metagame) for date, metagames in dates_to_metagames.items() for metagame in metagames]
-    return pd.DataFrame(columns=['date', 'archetype', 'percentage'], data=rows)
+    data_frame = pd.DataFrame(columns=['date', 'archetype', 'percentage'], data=rows)
+    data_frame['date'] = pd.to_datetime(data_frame['date'])  # set as date type
+    data_frame = data_frame.set_index(pd.DatetimeIndex(data_frame['date']))
+    return data_frame
 
 
 def create_pic_dirc(format: str, start_date: str, end_date: str) -> pl.Path:
@@ -63,136 +69,63 @@ def spline_estimate(x: np.array, y: np.array) -> np.array:
     return spi.UnivariateSpline(x=x, y=y, k=SPLINE_DEGREE)(x)
 
 
-def to_matplotlib_dates(dates: Iterable[str]) -> List[float]:
+def linear_estimate(x: np.array, y: np.array) -> np.array:
+    slope, intercept, _, _, _ = scs.linregress(x, y)
+    return (slope * x) + intercept
+
+
+def to_matplotlib_dates(dates: Iterable[str]) -> np.array:
     """Converts a series of String dates in the form of "year-month-day" into Matplotlib dates
     :param dates: series of String dates
     :return: converted series of dates"""
-    return [mpd.datestr2num(date) for date in dates]
+    return np.array([mpd.datestr2num(date) for date in dates])
 
 
-def extend_y_data(all_dates: List[float], dates: List[float], y_data: np.array) -> Tuple[np.array, np.array]:
-    """
-
-    :param all_dates:
-    :param dates:
-    :param y_data:
-    :return:
-    """
-    min_date = min(all_dates)  # TODO [0], [-1]?
-    max_date = max(all_dates)
-    sorted_dates = sorted(all_dates)
-
-    def float_eq(a: float, b: float) -> bool:
-        return abs(a - b) < .00001
-
-    def in_dates(num: float) -> bool:
-        for item in dates:
-            if float_eq(item, num):
-                return True
-        return False
-
-    def get_idx(num: float) -> int:
-        for idx, item in enumerate(sorted_dates):
-            if float_eq(item, num):
-                return idx
-        else:
-            raise ValueError(f'{num} not present in all dates')
-
-    def get_min_mid_pt() -> float:
-        min_date_idx = get_idx(min(dates))
-        mid_pt_idx = round(.9 * min_date_idx)
-        if float_eq(min_date_idx, mid_pt_idx) or float_eq(mid_pt_idx, 0):
-            return -1
-        return all_dates[mid_pt_idx]
-
-    def get_max_mid_pt() -> float:
-        max_mid_pt = get_idx(max(dates))
-        end_idx = len(sorted_dates) - 1
-        mid_pt_idx = min(round(1.1 * max_mid_pt), end_idx)
-        if float_eq(max_mid_pt, mid_pt_idx) or float_eq(mid_pt_idx, end_idx):
-            return -1
-        return all_dates[mid_pt_idx]
-
-    has_min = in_dates(min_date)
-    has_max = in_dates(max_date)
-
-    if has_min and has_max:
-        return y_data, dates
-
-    min_added = True
-    other_dates = dates.copy()
-    min_buffer = 1
-    if not has_min and not has_max:
-        count = 2
-        mind_mid_date = get_min_mid_pt()
-        if mind_mid_date >= 0:
-            count += 1
-
-        max_mid_date = get_max_mid_pt()
-        if max_mid_date >= 0:
-            count += 1
-
-        if count == 2:
-            other_dates = [min_date] + other_dates + [max_date]
-        elif count == 4:
-            other_dates = [min_date, mind_mid_date] + other_dates + [max_mid_date, max_date]
-        elif mind_mid_date >= 0:
-            other_dates = [min_date, mind_mid_date] + other_dates + [max_date]
-        else:
-            other_dates = [min_date] + other_dates + [max_mid_date, max_date]
-
-        new_y_data = np.zeros(len(y_data) + count)
-    else:
-        count = 1
-        if not has_min:
-            min_mid_pt = get_min_mid_pt()
-            if min_mid_pt >= 0:
-                count += 1
-                other_dates = [min_date, min_mid_pt] + other_dates
-            else:
-                other_dates = [min_date] + other_dates
-        else:
-            max_mid_pt = get_max_mid_pt()
-            if max_mid_pt >= 0:
-                count += 1
-                other_dates = other_dates + [max_mid_pt, max_date]
-            else:
-                other_dates.append(max_date)
-            min_added = False
-
-        new_y_data = np.zeros(len(y_data) + count)
-
-    for idx, item in enumerate(y_data):
-        if min_added:
-            idx += min_buffer
-        new_y_data[idx] = item
-
-    return new_y_data, other_dates
+def plot_top_k() -> None:
+    pass
 
 
-def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
-    """
+def fill_in_time(group: pd.DataFrame) -> pd.DataFrame:
+    group = group.resample('D').asfreq()
+    group['date'] = group.index
+    group['percentage'] = group['percentage'].interpolate('time')
+    return group
 
+
+def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
+    """For each archetype present in the given set of metagame data, plots the changes in that archetype's performance
+    overtime on its own graph. Raw data and fitted line for approximation are function are listed on each plot. Graphs
+    are saved under the given directory.
     :param metagame_comps:
     :param save_dirc:
     :return:
     """
     archetype_groups = metagame_comps.groupby('archetype')
-    all_dates = to_matplotlib_dates(metagame_comps['date'])
+
+    # to get consistent x and y axis across subplots
+    all_dates = to_matplotlib_dates(metagame_comps['date'].astype(dtype=str).sort_values().unique())
+    max_percentage = np.full(len(all_dates), fill_value=metagame_comps['percentage'].head(10).mean())
+
     plot_args = {'linestyle': '-', 'marker': ',', 'xdate': True}
     for archetype, group in archetype_groups:
+
+        # interpolate missing dates
+        group = group.sort_index()
+        group = fill_in_time(group)
+
         fig, axes = plt.subplots()
-        dates = to_matplotlib_dates(group['date'])
+
+        dates = to_matplotlib_dates(group['date'].astype(dtype=str))
         percents = group['percentage'].to_numpy(dtype=np.float)
-
         fitted_percents = spline_estimate(dates, percents)
-        extended_percents, some_dates = extend_y_data(all_dates, dates, percents)
-        fitted_extended_percents = spline_estimate(some_dates, extended_percents)
+        linear_fit = linear_estimate(dates, percents)
 
-        #axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', **plot_args)
-        #axes.plot_date(x=dates, y=fitted_percents, color='g', label='Fitted Points', **plot_args)
-        axes.plot_date(x=some_dates, y=fitted_extended_percents, color='b', label='Extended Fitted Points', **plot_args)
-        #axes.legend()
+        axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', markersize=1)
+        axes.plot_date(x=dates, y=percents, color='purple', label='Raw Line', **plot_args)
+        axes.plot_date(x=dates, y=fitted_percents, color='g', label='Spline Estimate', **plot_args)
+        axes.plot_date(x=dates, y=linear_fit, color='b', label='Linear Estimate', **plot_args)
+        axes.plot_date(x=all_dates, y=max_percentage, color='w', **plot_args)  # aligns x and y axis across all plots
+        axes.legend()
 
         title = ' '.join([word.capitalize() for word in archetype.split(' ')])
         plt.title(title)
@@ -214,7 +147,7 @@ def plot_metagame_comp(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None
 def main(start_date: str, end_date: str, mtg_format: str, length: int) -> None:
     data = metagame_comp_over_time(start_date, end_date, length, mtg_format)
     title_path = create_pic_dirc(mtg_format, start_date, end_date)
-    plot_metagame_comp(data, title_path)
+    plot_indiv_metagame_comps(data, title_path)
 
 
 def parse_args() -> Tuple[str, str, str, int]:
