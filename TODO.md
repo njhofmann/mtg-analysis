@@ -11,7 +11,6 @@
 * on delete cascade
 * Add format periods and legal blocks
 * Table desps how?
-* Remove '-' type key
 * Update changes across project
 * Major vs non major events
 * Online vs paper events
@@ -33,7 +32,6 @@
 * DOCUMENT EVERYTHING!!!
 
 ### Questions
-* argparser
 * scientific computations and machine learning contributions
 
 ### misc

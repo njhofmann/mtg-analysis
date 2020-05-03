@@ -12,7 +12,7 @@ import sys
 """Collection of queries for drawing together useful collections of data for analysis"""
 
 SPLINE_DEGREE = 4
-DEFAULT_DAY_LENGTH = 21  # 3 weeks
+DEFAULT_DAY_LENGTH = 7  # 3 weeks
 
 
 def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str, int]]:
@@ -230,7 +230,6 @@ def parse_args() -> Tuple[str, str, str, int]:
         raise ValueError(f'usage {args[0]}: start-date, end-date, format, length (optional)')
 
     length = DEFAULT_DAY_LENGTH if len(args) == 4 else int(args[-1])
-
     return valid_date(args[1]), valid_date(args[2]), args[3], length
 
 
