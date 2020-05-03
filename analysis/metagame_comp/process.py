@@ -100,7 +100,7 @@ def extend_y_data(all_dates: List[float], dates: List[float], y_data: np.array) 
 
     def get_min_mid_pt() -> float:
         min_date_idx = get_idx(min(dates))
-        mid_pt_idx = round(.5 * min_date_idx)
+        mid_pt_idx = round(.9 * min_date_idx)
         if float_eq(min_date_idx, mid_pt_idx) or float_eq(mid_pt_idx, 0):
             return -1
         return all_dates[mid_pt_idx]
@@ -108,7 +108,7 @@ def extend_y_data(all_dates: List[float], dates: List[float], y_data: np.array) 
     def get_max_mid_pt() -> float:
         max_mid_pt = get_idx(max(dates))
         end_idx = len(sorted_dates) - 1
-        mid_pt_idx = min(round(1.5 * max_mid_pt), end_idx)
+        mid_pt_idx = min(round(1.1 * max_mid_pt), end_idx)
         if float_eq(max_mid_pt, mid_pt_idx) or float_eq(mid_pt_idx, end_idx):
             return -1
         return all_dates[mid_pt_idx]

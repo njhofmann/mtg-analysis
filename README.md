@@ -21,7 +21,7 @@ price decline?  How long does it take for the price to rebound to pre-reprint le
 
 * Visualization and prediction of for competitive metagame composition, pricing, reprints, and other areas.
 
-# 3D Party Libraries
+# 3rd Party Libraries
 * Data storage and interfacing provided by [Postgres 11.5](https://www.postgresql.org/) and [psycopg2 2.3.8](https://pypi.org/project/psycopg2/).
 * Web scrapping and API calls with [Requests](https://2.python-requests.org/en/master/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/).``
 * Data visualization provided by [Matplotlib](https://matplotlib.org/).
