@@ -1,4 +1,5 @@
 import analysis.utility as qu
+import analysis.moving_average as ma
 
 import datetime as dt
 from typing import Tuple, List, Iterable, Generator
@@ -15,7 +16,7 @@ import scipy.stats as scs
 """Collection of queries for drawing together useful collections of data for analysis"""
 
 SPLINE_DEGREE = 2
-DEFAULT_DAY_LENGTH = 14  # 3 weeks
+DEFAULT_DAY_LENGTH = 14
 
 
 def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str, int]]:
@@ -120,10 +121,15 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
         fitted_percents = spline_estimate(dates, percents)
         linear_fit = linear_estimate(dates, percents)
 
-        axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', markersize=1)
+        #axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', markersize=1)
         axes.plot_date(x=dates, y=percents, color='purple', label='Raw Line', **plot_args)
-        axes.plot_date(x=dates, y=fitted_percents, color='g', label='Spline Estimate', **plot_args)
+        #axes.plot_date(x=dates, y=fitted_percents, color='g', label='Spline Estimate', **plot_args)
         axes.plot_date(x=dates, y=linear_fit, color='b', label='Linear Estimate', **plot_args)
+        #axes.plot_date(*ma.central_moving_average(dates, percents, side_size=20), color='g', label='Moving Avg', **plot_args)
+        axes.plot_date(*ma.trailing_moving_avg(dates, percents, trailing_size=30, method='u', recur=1), color='r',
+                       label='Cum Avg', **plot_args)
+        axes.plot_date(*ma.trailing_moving_avg(dates, percents, trailing_size=30, method='u', recur=2), color='green',
+                       label='Cum Avg', **plot_args)
         axes.plot_date(x=all_dates, y=max_percentage, color='w', **plot_args)  # aligns x and y axis across all plots
         axes.legend()
 
