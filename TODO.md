@@ -1,13 +1,14 @@
 ### MTGTop8 parser
 * upto date scrapping for existing formats
 * automatically stopping parsing (errors?)
-* header file for scrapper
 * combine list comprehensions / turn into functions
 
 ### MTG Goldfish Scrapper
+* multiprocessing
 * get prices from last few months
 
 ### DB Schemas
+* get copy of schema
 * on delete cascade
 * Add format periods and legal blocks
 * Table desps how?
@@ -31,7 +32,12 @@
 * sql format calls, one per line
 * DOCUMENT EVERYTHING!!!
 
-### Questions
+### Analysis
+* Metagame prediction
+* Metagame trends
+  * Overlay graph of most popular decks
+  * Arg parser 
+* 
 * scientific computations and machine learning contributions
 
 ### misc
