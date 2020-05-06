@@ -1,6 +1,9 @@
 import requests
 import re
 import datetime as dt
+import multiprocessing as mp
+import math as m
+from typing import List, Any, Iterable, Tuple
 from psycopg2 import sql
 import psycopg2
 import scrapping.utility as su
@@ -15,6 +18,7 @@ DATE_PATTERN = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}')
 PRICE_PATTERN = re.compile('[0-9]+.[0-9]{1,2}";$')
 MAGIC_CORE_SET_PATTERN = re.compile('Magic 201[45]')
 EDITION_PATTERN = re.compile('(Modern Masters|Planechase) [0-9]{4}')
+WORKER_COUNT = 4
 
 
 def get_cards_and_printings(cursor):
@@ -126,7 +130,7 @@ def get_mtggoldfish_data(name, printing_abbrv, printing, logger):
             logger.info(f'Got data for card {name} from {url} with parameters {msg}')
             return response.text
 
-    # no webpage found, return None
+    # no webpage found
     logger.error(f'Failed to fetch prices for card {name} for printing {printing}')
     return None
 
@@ -168,25 +172,48 @@ def get_printing_prices(card_name, printing_code, printing, logger):
     return paper_prices, online_prices
 
 
-def get_and_store_prices(database, user, logger, prod_mode):
+def divide_list(l: Iterable[Any], n: int) -> List[Any]:
+    n = m.ceil(len(l) / n)
+    return [l[i:i + n] for i in range(0, len(l), n)]
+
+
+def get_and_store_prices(database, user, prod_mode):
     # all cards and printings in db
-    with psycopg2.connect(database=database, user=user) as conn:
-        conn.autocommit = True
-        with conn.cursor() as cursor:
-            db_entries = get_cards_and_printings(cursor)
-            # find prices for each one
-            for name, printing_code, printing in db_entries:
+
+    def process(process_id: int, entries: List[Tuple[str, str, str]]) -> None:
+        # find prices for each one
+        logger = su.init_logging(f'mtgtop8_scrapper_{process_id}.log')
+        try:
+            for name, printing_code, printing in entries:
                 paper_prices, online_prices = get_printing_prices(name, printing_code, printing, logger)
 
                 # insert each price into database
                 for mapping, is_paper in ((paper_prices, True), (online_prices, False)):
                     for date, price in mapping.items():
                         insert_price_data(name, printing_code, price, date, is_paper, cursor, logger, prod_mode)
+        except Exception as e:
+            if prod_mode:
+                logger.warning(str(e))
+            else:
+                raise e
+
+    with psycopg2.connect(database=database, user=user) as conn:
+        conn.autocommit = True
+        with conn.cursor() as cursor:
+            db_entries = get_cards_and_printings(cursor)
+
+    chunked_entries = divide_list(db_entries, WORKER_COUNT)
+    processes = [mp.Process(target=process, args=(i, chunked_entries[i])) for i in range(WORKER_COUNT)]
+
+    for process in processes:
+        process.start()
+
+    for process in processes:
+        process.join()
 
 
-def main(prod_mode):
-    logger = su.init_logging('mtggoldfish_log.log')
-    get_and_store_prices(dbr.DATABASE_NAME, dbr.USER, logger, prod_mode)
+def main(prod_mode: bool) -> None:
+    get_and_store_prices(dbr.DATABASE_NAME, dbr.USER, prod_mode)
 
 
 if __name__ == '__main__':

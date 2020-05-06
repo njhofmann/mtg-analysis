@@ -69,8 +69,7 @@ def retrieve_and_parse(search_url, url_format, database, prod_mode, user=dbr.USE
                 raise e
 
     keep_parsing = mp.Value('i', 1)
-    processes = [mp.Process(target=process, args=(idx, WORKER_COUNT, keep_parsing,))
-                 for idx, _ in enumerate(range(WORKER_COUNT))]
+    processes = [mp.Process(target=process, args=(idx, WORKER_COUNT, keep_parsing,)) for idx in range(WORKER_COUNT)]
 
     for process in processes:
         process.start()
