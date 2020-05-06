@@ -3,6 +3,7 @@ import psycopg2
 import scrapping.utility as su
 from psycopg2 import sql
 import database.db_reader as dbr
+from typing import List, Tuple, Set
 
 """Module for pulling card info from the Scryfall API"""
 
@@ -17,8 +18,7 @@ def get_cards_in_db(db_cursor, logger):
     of the given cursor under the 'entry_card' table.
     :param: db_cursor:
     :param: logger:
-    :return: list of all card name that have appeared in tournament level play
-    """
+    :return: list of all card name that have appeared in tournament level play"""
     logger.info(msg='Getting list of cards to retrieve info for')
     card_query = sql.SQL('SELECT DISTINCT({}) FROM {}').format(
         sql.Identifier('card'),
@@ -30,8 +30,7 @@ def get_cards_in_db(db_cursor, logger):
 def get_card_data(card_name, logger):
     """Retrieves the data around a given card from the Scryfall API and returns it as a dictionary.
     :param card_name: (String) name of card to retrieve data for
-    :return: (dictionary) dictionary of data associated with given card
-    """
+    :return: dictionary of data associated with given card"""
     logger.info(msg=f'Retrieving data for card {card_name}')
     formatted_card_name = map(lambda x: x.lower(), card_name.split(' '))
     card_request_url = SCRYFALL_ENDPOINT + '?exact=' + '+'.join(formatted_card_name)
@@ -41,8 +40,8 @@ def get_card_data(card_name, logger):
 def parse_and_store(card_data, db_cursor, logger, prod_mode):
     """Given a dictionary of data for a card, from attributes to attribute values - parses the dictionary such that all
     needed info is extracted and inserted into the appropriate table in the database
-    :param card_data: (JSON like dict)
-    :param db_cursor: (P
+    :param card_data:
+    :param db_cursor:
     :return:"""
     name = card_data['name']
 
@@ -68,19 +67,19 @@ def parse_and_store(card_data, db_cursor, logger, prod_mode):
     insert_card_printings(name, card_printings, db_cursor, logger, prod_mode)
 
 
-def get_card_printings(set_search_url):
+def get_card_printings(set_search_url: str) -> Set[Tuple[str, str]]:
     """Given the url listing the data for every set an associated card has been printed in, returns a list of each set
-    the card was printed in.
+    the card was printed in - with its rarity at that printing.
     :param set_search_url: url to retrieve card set data from
-    :return: list of sets card associated with url has been printed in
-    """
+    :return: list of sets the card associated with url has been printed in"""
     json_response = ssu.json_from_url(set_search_url)
     set_data = json_response['data']
-    return set([card['set'] for card in set_data])
+    return set([(card['set'], card['rarity']) for card in set_data])
 
 
 def insert_card_colors(card_name, colors, db_cursor, logger, prod_mode):
     for color in colors:
+
         def insert_query():
             insert_query = ssu.get_n_item_insert_query(2).format(
                 sql.Identifier('cards', 'colors'),
@@ -149,16 +148,17 @@ def insert_card_types(card_name, type_line, db_cursor, logger, prod_mode):
             su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
 
-def insert_card_printings(card_name, sets, db_cursor, logger, prod_mode):
-    for printing in sets:
+def insert_card_printings(card_name: str, sets: Set[Tuple[str, str]], db_cursor, logger, prod_mode):
+    for printing, rarity in sets:
         def insert_query():
-            insert_query = ssu.get_n_item_insert_query(2).format(
+            insert_query = ssu.get_n_item_insert_query(3).format(
                 sql.Identifier('cards', 'printings'),
                 sql.Identifier('card'),
-                sql.Identifier('set'))
-            db_cursor.execute(insert_query, (card_name, printing))
+                sql.Identifier('set'),
+                sql.Identifier('rarity'))
+            db_cursor.execute(insert_query, (card_name, printing, rarity))
 
-        logger.info(msg=f'Inserting printing {printing} for card {card_name}')
+        logger.info(msg=f'Inserting printing {printing} and card {card_name}')
         warning_msg = f'Duplicate entry for card {card_name} and printing {printing}'
         su.execute_query(insert_query, logger, warning_msg, prod_mode)
 
