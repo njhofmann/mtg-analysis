@@ -4,6 +4,9 @@ import pathlib as pl
 from typing import Union, List, Generator
 import datetime as dt
 
+# universal matplotlib plot args
+PLOT_ARGS = {'linestyle': '-', 'marker': ',', 'xdate': True}
+
 
 def generic_search(search_query: str) -> List:
     """Generic function that executes a search query in the database and returns the results.

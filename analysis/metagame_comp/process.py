@@ -1,8 +1,8 @@
-import analysis.utility as qu
+import analysis.utility as au
 import analysis.moving_average as ma
 
 import datetime as dt
-from typing import Tuple, List, Iterable, Generator
+from typing import Tuple, List, Iterable
 import pathlib as pl
 import sys
 
@@ -26,8 +26,8 @@ def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str
     :param length: number of days before given date to start query
     :param mtg_format: MTG format to search under
     :return: list of archetype name and its metagame percentage"""
-    query = qu.load_query('query.sql').format(date=date, length=length, format=mtg_format)
-    return qu.generic_search(query)
+    query = au.load_query('query.sql').format(date=date, length=length, format=mtg_format)
+    return au.generic_search(query)
 
 
 def metagame_comp_over_time(start_date: str, end_date: str, length: int, mtg_format: str) -> pd.DataFrame:
@@ -41,7 +41,7 @@ def metagame_comp_over_time(start_date: str, end_date: str, length: int, mtg_for
     :param mtg_format: format to search under
     :return: Dataframe with metagame compositions over time"""
     dates_to_metagames = {date: get_metagame_comp(date, length, mtg_format)
-                          for date in qu.date_range(start_date, end_date, length)}
+                          for date in au.date_range(start_date, end_date, length)}
     rows = [(date, *metagame) for date, metagames in dates_to_metagames.items() for metagame in metagames]
     data_frame = pd.DataFrame(columns=['date', 'archetype', 'percentage'], data=rows)
     data_frame['date'] = pd.to_datetime(data_frame['date'])  # set as date type
@@ -107,7 +107,6 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
     all_dates = to_matplotlib_dates(metagame_comps['date'].astype(dtype=str).sort_values().unique())
     max_percentage = np.full(len(all_dates), fill_value=metagame_comps['percentage'].head(10).mean())
 
-    plot_args = {'linestyle': '-', 'marker': ',', 'xdate': True}
     for archetype, group in archetype_groups:
 
         # interpolate missing dates
@@ -122,15 +121,15 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
         linear_fit = linear_estimate(dates, percents)
 
         #axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', markersize=1)
-        axes.plot_date(x=dates, y=percents, color='purple', label='Raw Line', **plot_args)
+        axes.plot_date(x=dates, y=percents, color='purple', label='Raw Line', **au.PLOT_ARGS)
         #axes.plot_date(x=dates, y=fitted_percents, color='g', label='Spline Estimate', **plot_args)
-        axes.plot_date(x=dates, y=linear_fit, color='b', label='Linear Estimate', **plot_args)
+        axes.plot_date(x=dates, y=linear_fit, color='b', label='Linear Estimate', **au.PLOT_ARGS)
         #axes.plot_date(*ma.central_moving_average(dates, percents, side_size=20), color='g', label='Moving Avg', **plot_args)
         axes.plot_date(*ma.trailing_moving_avg(dates, percents, trailing_size=30, method='u', recur=1), color='r',
-                       label='Cum Avg', **plot_args)
+                       label='Cum Avg', **au.PLOT_ARGS)
         axes.plot_date(*ma.trailing_moving_avg(dates, percents, trailing_size=30, method='u', recur=2), color='green',
-                       label='Cum Avg', **plot_args)
-        axes.plot_date(x=all_dates, y=max_percentage, color='w', **plot_args)  # aligns x and y axis across all plots
+                       label='Cum Avg', **au.PLOT_ARGS)
+        axes.plot_date(x=all_dates, y=max_percentage, color='w', **au.PLOT_ARGS)  # aligns x and y axis across all plots
         axes.legend()
 
         title = ' '.join([word.capitalize() for word in archetype.split(' ')])

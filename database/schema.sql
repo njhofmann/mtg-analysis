@@ -60,6 +60,20 @@ CREATE TYPE cards.color AS ENUM (
 ALTER TYPE cards.color OWNER TO postgres;
 
 --
+-- Name: rarity; Type: TYPE; Schema: cards; Owner: natejh
+--
+
+CREATE TYPE cards.rarity AS ENUM (
+    'common',
+    'uncommon',
+    'rare',
+    'mythic'
+);
+
+
+ALTER TYPE cards.rarity OWNER TO natejh;
+
+--
 -- Name: format; Type: TYPE; Schema: events; Owner: postgres
 --
 
@@ -108,7 +122,8 @@ ALTER TABLE cards.colors OWNER TO postgres;
 
 CREATE TABLE cards.printings (
     card text NOT NULL,
-    set text NOT NULL
+    set text NOT NULL,
+    rarity cards.rarity DEFAULT 'common'::cards.rarity NOT NULL
 );
 
 
@@ -388,14 +403,6 @@ ALTER TABLE ONLY events.event_info
 
 ALTER TABLE ONLY prices.pricing
     ADD CONSTRAINT pricing_unique UNIQUE (card, set, date, is_paper);
-
-
---
--- Name: printings fk_set_info; Type: FK CONSTRAINT; Schema: cards; Owner: postgres
---
-
-ALTER TABLE ONLY cards.printings
-    ADD CONSTRAINT fk_set_info FOREIGN KEY (set) REFERENCES cards.set_info(set);
 
 
 --
