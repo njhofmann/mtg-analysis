@@ -8,7 +8,6 @@
 * get prices from last few months
 
 ### DB Schemas
-* get copy of schema
 * on delete cascade
 * Add format periods and legal blocks
 * Table desps how?
@@ -33,12 +32,11 @@
 * DOCUMENT EVERYTHING!!!
 
 ### Analysis
-* Metagame prediction
 * Metagame trends
   * Overlay graph of most popular decks
-  * Arg parser 
-* 
-* scientific computations and machine learning contributions
+* complete pricing trend graphs
+* refactor, renamem and document code
+* prediction setups?
 
 ### misc
 * get tcgplayer api key

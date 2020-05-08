@@ -20,10 +20,7 @@ def create_dump(db_name, backup_name, user):
     out = out.decode('utf-8')
     err = err.decode('utf-8')
 
-    if process.returncode != 0:
-        print(err)
-    else:
-        print(out)
+    print(err if process.returncode != 0 else out)
 
     zip_file = backup_name.split('.')[0] + '.zip'
     with zp.ZipFile(zip_file, 'w') as z:

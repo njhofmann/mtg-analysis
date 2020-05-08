@@ -75,13 +75,6 @@ def linear_estimate(x: np.array, y: np.array) -> np.array:
     return (slope * x) + intercept
 
 
-def to_matplotlib_dates(dates: Iterable[str]) -> np.array:
-    """Converts a series of String dates in the form of "year-month-day" into Matplotlib dates
-    :param dates: series of String dates
-    :return: converted series of dates"""
-    return np.array([mpd.datestr2num(date) for date in dates])
-
-
 def plot_top_k() -> None:
     pass
 
@@ -104,7 +97,7 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
     archetype_groups = metagame_comps.groupby('archetype')
 
     # to get consistent x and y axis across subplots
-    all_dates = to_matplotlib_dates(metagame_comps['date'].astype(dtype=str).sort_values().unique())
+    all_dates = au.to_matplotlib_dates(metagame_comps['date'].astype(dtype=str).sort_values().unique())
     max_percentage = np.full(len(all_dates), fill_value=metagame_comps['percentage'].head(10).mean())
 
     for archetype, group in archetype_groups:
@@ -115,7 +108,7 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
 
         fig, axes = plt.subplots()
 
-        dates = to_matplotlib_dates(group['date'].astype(dtype=str))
+        dates = au.to_matplotlib_dates(group['date'].astype(dtype=str))
         percents = group['percentage'].to_numpy(dtype=np.float)
         fitted_percents = spline_estimate(dates, percents)
         linear_fit = linear_estimate(dates, percents)
