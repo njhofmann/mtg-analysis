@@ -4,6 +4,7 @@ import analysis.moving_average as ma
 import datetime as dt
 from typing import Tuple, List, Iterable
 import pathlib as pl
+import re
 import sys
 
 import matplotlib.dates as mpd
@@ -75,8 +76,41 @@ def linear_estimate(x: np.array, y: np.array) -> np.array:
     return (slope * x) + intercept
 
 
-def plot_top_k() -> None:
-    pass
+def select_top_decks(metagame_comps: pd.DataFrame) -> List[Tuple[str, float]]:
+    # TODO figure out proper selection criteria
+    row_count = len(metagame_comps)
+
+    def ranking(group: pd.DataFrame) -> float:
+        return sum(group['percentage']) / len(group)
+
+    sorted_decks = sorted([(name, ranking(group)) for name, group in metagame_comps.groupby('archetype')],
+                  key=lambda x: x[1], reverse=True)
+    return list(map(lambda x: x[0], sorted_decks))[:10]
+
+
+def create_other_data(other_decks: pd.DataFrame) -> pd.DataFrame:
+    # fill out each group, recombine, group and average, recreate dataframe
+    filled_groups = [fill_in_time(group) for name, group in other_decks.groupby('archetype')]
+    filled_data_frame = pd.DataFrame(filled_groups)
+
+
+def plot_metagame(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
+    major_deck_names = select_top_decks(metagame_comps)
+    major_decks = metagame_comps[metagame_comps['archetype'].isin(major_deck_names)]
+    other_decks = metagame_comps[~metagame_comps['archetype'].isin(major_deck_names)]
+
+    for name, group in major_decks.groupby('archetype'):
+        group = fill_in_time(group)
+        group['date'] = group['date'].apply(mpd.date2num)
+        avg = ma.trailing_moving_avg(group['date'], group['percentage'], trailing_size=45)
+        plt.plot_date(*avg, label=name, **au.PLOT_ARGS)
+
+    plt.title('Metagame Composition')
+    plt.ylabel('Metagame Percentage')
+    plt.xlabel('Date')
+    plt.legend()
+    plt.show()
+    # plt.savefig(save_dirc)
 
 
 def fill_in_time(group: pd.DataFrame) -> pd.DataFrame:
@@ -108,7 +142,7 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
 
         fig, axes = plt.subplots()
 
-        dates = au.to_matplotlib_dates(group['date'].astype(dtype=str))
+        dates = au.to_matplotlib_dates(group['date'].astype(dtype=str))  # TODO fix me
         percents = group['percentage'].to_numpy(dtype=np.float)
         fitted_percents = spline_estimate(dates, percents)
         linear_fit = linear_estimate(dates, percents)
@@ -142,13 +176,17 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
         plt.close(fig)
 
 
-def main(start_date: str, end_date: str, mtg_format: str, length: int) -> None:
+def main(start_date: str, end_date: str, mtg_format: str, plot_type: str, length: int) -> None:
     data = metagame_comp_over_time(start_date, end_date, length, mtg_format)
     title_path = create_pic_dirc(mtg_format, start_date, end_date)
-    plot_indiv_metagame_comps(data, title_path)
+
+    if plot_type == 'i':
+        plot_indiv_metagame_comps(data, title_path)
+    elif plot_type == 'm':
+        plot_metagame(data, title_path)
 
 
-def parse_args() -> Tuple[str, str, str, int]:
+def parse_args() -> Tuple[str, str, str, str, int]:
     args = sys.argv
 
     def valid_date(date: str) -> str:
@@ -157,11 +195,16 @@ def parse_args() -> Tuple[str, str, str, int]:
         except ValueError as e:
             raise ValueError(f'date must be in form of "year-month-day"')
 
-    if len(args) not in (4, 5):
-        raise ValueError(f'usage {args[0]}: start-date, end-date, format, length (optional)')
+    if len(args) not in (5, 6):
+        raise ValueError(f'usage {args[0]}: start-date, end-date, format, plot-type length (optional)')
 
-    length = DEFAULT_DAY_LENGTH if len(args) == 4 else int(args[-1])
-    return valid_date(args[1]), valid_date(args[2]), args[3], length
+    length = DEFAULT_DAY_LENGTH if len(args) == 5 else int(args[-1])
+    plot_type = args[-1] if len(args) == 5 else args[-2]
+
+    if plot_type not in ('i', 'm'):
+        raise ValueError(f'valid plot types: i for individual plots, m for metagame plot')
+
+    return valid_date(args[1]), valid_date(args[2]), args[3], plot_type, length
 
 
 if __name__ == '__main__':

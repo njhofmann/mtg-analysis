@@ -44,6 +44,7 @@ def plot_card_prices(card: str, is_paper: bool) -> None:
     plt.ylabel('Price')
     plt.xlabel('Date')
     plt.show()
+    # TODO finish me
 
 
 def main():

@@ -21,9 +21,15 @@
 
 ### Docker
 * dockerize data scrappers
-* run scrappers in order
 * connect to outside db
-* automated docker compose file (keep order in mind_)
+* automated docker compose file (keep order in mind)
+
+###Immediate
+* redo arg parsers
+* stacked plots
+* abstract helper functions in analysis
+* split indiv and metagame scripts
+* load sql data -> proper types before returnign dataframe
 
 ### Style
 * data types / type hints
@@ -45,7 +51,5 @@
 * DB names constants file
 * Rename tables and keys
 * automatic data backups? external storage?
-* Questions of interest --> needed data --> relevant SQL query
 
-* How to build data sheet
 * Constants file
