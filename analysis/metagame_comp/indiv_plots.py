@@ -4,7 +4,6 @@ import analysis.moving_average as ma
 import datetime as dt
 from typing import Tuple, List, Iterable
 import pathlib as pl
-import re
 import sys
 
 import matplotlib.dates as mpd
@@ -18,6 +17,7 @@ import scipy.stats as scs
 
 SPLINE_DEGREE = 2
 DEFAULT_DAY_LENGTH = 14
+DEFAULT_GROUP_COUNT = 15
 
 
 def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str, int]]:
@@ -76,41 +76,67 @@ def linear_estimate(x: np.array, y: np.array) -> np.array:
     return (slope * x) + intercept
 
 
-def select_top_decks(metagame_comps: pd.DataFrame) -> List[Tuple[str, float]]:
+def select_top_decks(metagame_comps: pd.DataFrame) -> List[Tuple[str, pd.DataFrame]]:
     # TODO figure out proper selection criteria
-    row_count = len(metagame_comps)
+    metagame_comps = [(name, group) for name, group in metagame_comps.groupby('archetype')]
 
-    def ranking(group: pd.DataFrame) -> float:
-        return sum(group['percentage']) / len(group)
+    def get_time_range(group: pd.DataFrame) -> int:
+        return (group['date'].max() - group['date'].min()).days
 
-    sorted_decks = sorted([(name, ranking(group)) for name, group in metagame_comps.groupby('archetype')],
-                  key=lambda x: x[1], reverse=True)
-    return list(map(lambda x: x[0], sorted_decks))[:10]
+    metagame_comps = [(name, group, get_time_range(group)) for name, group in metagame_comps]
+    longest_time_range = max(map(lambda x: x[-1], metagame_comps))
+    metagame_comps = filter(lambda x: x[-1] > (.9 * longest_time_range), metagame_comps)
+    metagame_comps = sorted(map(lambda x: (x[0], x[1], x[1]['percentage'].mean()), metagame_comps), key=lambda x: x[-1],
+                            reverse=True)
+    return list(map(lambda x: (x[0], x[1]), metagame_comps))[:DEFAULT_GROUP_COUNT]
 
 
-def create_other_data(other_decks: pd.DataFrame) -> pd.DataFrame:
-    # fill out each group, recombine, group and average, recreate dataframe
-    filled_groups = [fill_in_time(group) for name, group in other_decks.groupby('archetype')]
-    filled_data_frame = pd.DataFrame(filled_groups)
+def add_other_data(decks: np.array) -> np.array:
+    other_decks = np.apply_along_axis(func1d=lambda x: 100 - np.sum(x), axis=0, arr=decks)
+    return np.vstack([decks, other_decks])
+
+
+def fill_in_array(array: np.array, new_size: int, start_buffer: int) -> np.array:
+    assert len(array.shape) == 1
+    if start_buffer == 0 and array.shape[0] == new_size:
+        return array[:]
+    new_array = np.zeros(new_size, dtype=array.dtype)
+    end_idx = min(new_size, start_buffer + len(array))
+    new_array[start_buffer:end_idx] = array[:]
+    return new_array
 
 
 def plot_metagame(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
-    major_deck_names = select_top_decks(metagame_comps)
-    major_decks = metagame_comps[metagame_comps['archetype'].isin(major_deck_names)]
-    other_decks = metagame_comps[~metagame_comps['archetype'].isin(major_deck_names)]
+    major_groups = select_top_decks(metagame_comps)
 
-    for name, group in major_decks.groupby('archetype'):
+    filled_groups = {}
+    for name, group in major_groups:
         group = fill_in_time(group)
-        group['date'] = group['date'].apply(mpd.date2num)
-        avg = ma.trailing_moving_avg(group['date'], group['percentage'], trailing_size=45)
-        plt.plot_date(*avg, label=name, **au.PLOT_ARGS)
+        filled_groups[name] = ma.trailing_moving_avg(group['date'], group['percentage'], trailing_size=45)
 
+    longest_date = max([group[0] for group in filled_groups.values()], key=lambda x: len(x))
+    filled_arrays = []
+    deck_names = []
+    for name, group in filled_groups.items():
+        deck_names.append(name)
+        start_idx = np.where(longest_date == group[0][0])[0][0]  # TODO: this can be done with simple math
+        filled_arrays.append(fill_in_array(group[1], len(longest_date), start_idx))
+
+    filled_arrays = np.vstack(filled_arrays)
+    filled_arrays = add_other_data(filled_arrays)
+    deck_names.append('Other Decks')
+
+    longest_date = longest_date.apply(mpd.date2num)
+
+    fig, ax = plt.subplots()
+
+    ax.stackplot(longest_date, *filled_arrays, labels=deck_names)
+    ax.xaxis.set_major_formatter(mpd.DateFormatter('%Y-%m-%d'))
     plt.title('Metagame Composition')
     plt.ylabel('Metagame Percentage')
     plt.xlabel('Date')
     plt.legend()
-    plt.show()
-    # plt.savefig(save_dirc)
+    plt.savefig(save_dirc)
 
 
 def fill_in_time(group: pd.DataFrame) -> pd.DataFrame:
@@ -147,11 +173,11 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
         fitted_percents = spline_estimate(dates, percents)
         linear_fit = linear_estimate(dates, percents)
 
-        #axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', markersize=1)
+        # axes.plot_date(x=dates, y=percents, color='r', label='Raw Points', markersize=1)
         axes.plot_date(x=dates, y=percents, color='purple', label='Raw Line', **au.PLOT_ARGS)
-        #axes.plot_date(x=dates, y=fitted_percents, color='g', label='Spline Estimate', **plot_args)
+        # axes.plot_date(x=dates, y=fitted_percents, color='g', label='Spline Estimate', **plot_args)
         axes.plot_date(x=dates, y=linear_fit, color='b', label='Linear Estimate', **au.PLOT_ARGS)
-        #axes.plot_date(*ma.central_moving_average(dates, percents, side_size=20), color='g', label='Moving Avg', **plot_args)
+        # axes.plot_date(*ma.central_moving_average(dates, percents, side_size=20), color='g', label='Moving Avg', **plot_args)
         axes.plot_date(*ma.trailing_moving_avg(dates, percents, trailing_size=30, method='u', recur=1), color='r',
                        label='Cum Avg', **au.PLOT_ARGS)
         axes.plot_date(*ma.trailing_moving_avg(dates, percents, trailing_size=30, method='u', recur=2), color='green',

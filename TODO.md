@@ -28,6 +28,7 @@
 * redo arg parsers
 * stacked plots
 * abstract helper functions in analysis
+* missing sets
 * split indiv and metagame scripts
 * load sql data -> proper types before returnign dataframe
 
