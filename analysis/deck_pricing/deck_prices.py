@@ -6,7 +6,7 @@ import pathlib as pl
 import matplotlib.pyplot as plt
 from typing import Tuple, List
 
-"""Module for displaying trends in deck prices over time"""
+"""Module for creating plots displaying trends in deck prices over time"""
 
 
 def get_deck_prices(mtg_format: str, archetype: str) -> pd.DataFrame:

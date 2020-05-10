@@ -5,6 +5,7 @@ import matplotlib.dates as mpd
 import pathlib as pl
 from typing import Union, List, Generator, Iterable
 import datetime as dt
+import pandas as pd
 
 # universal matplotlib plot args
 PLOT_ARGS = {'linestyle': '-', 'marker': ',', 'xdate': True}
@@ -41,6 +42,21 @@ def to_matplotlib_dates(dates: Iterable[str]) -> np.array:
     :param dates: series of String dates
     :return: converted series of dates"""
     return np.array([mpd.datestr2num(date) for date in dates])
+
+
+def fill_in_time(data_frame: pd.DataFrame, date_col: str, dependent_col: str) -> pd.DataFrame:
+    """Give a DataFrame with a series of dates as its index (and its own identical date column) and a column that is
+    dependent on the date, fills in all missing dates (such that the index is sequential by day) and interpolates the
+    dependent column of all newly added rows
+    :param data_frame: DataFrame to operate on
+    :param date_col: name of date column matching the date index
+    :param dependent_col: name of the column that is dependent on the date index / column
+    :return: given DataFrame with missing dates "filled in"
+    """
+    data_frame = data_frame.resample('D').asfreq()
+    data_frame[date_col] = data_frame.index
+    data_frame[dependent_col] = data_frame[dependent_col].interpolate('time')
+    return data_frame
 
 
 if __name__ == '__main__':

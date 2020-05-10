@@ -3,7 +3,7 @@ import re
 import datetime as dt
 import multiprocessing as mp
 import math as m
-from typing import List, Any, Iterable, Tuple
+from typing import List, Any, Iterable, Tuple, Optional, Dict
 from psycopg2 import sql
 import psycopg2
 import scrapping.utility as su
@@ -24,7 +24,8 @@ WORKER_COUNT = 4
 def get_cards_and_printings(cursor):
     """Retrieves all cards and their respective printings from the database associated with the given cursor.
     :param cursor: cursor of the database to retrieve cards and their printings from
-    :return: list of tuples where each tuple is a card name, a set abbreviation, and a set"""
+    :return: list of tuples where each tuple is a card name, a set abbreviation, and a set
+    """
     select_query = sql.SQL('SELECT {}, {}, {} FROM {} {} JOIN {} {} ON {} = {}').format(
         sql.Identifier('s', 'card'),
         sql.Identifier('s', 'set'),
@@ -49,8 +50,8 @@ def insert_price_data(card, printing, price, date, is_paper, db_cursor, logger, 
     :param is_paper: is price for a paper printing or online printing
     :param db_cursor: cursor of the database to retrieve data from
     :param logger: logger to record any relevant info with
-    :return: None"""
-
+    :return: None
+    """
     def price_insert_query():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}, {}) VALUES (%s, %s, %s, %s, %s)').format(
             sql.Identifier('prices', 'pricing'),
@@ -82,12 +83,15 @@ def get_mtggoldfish_pricing_url(printing, card, foil):
     return MTGGOLDFISH_PRICING_URL.format(printing, foil_str, card)
 
 
-def format_printing_name(printing):
+def format_printing_name(printing: str) -> str:
     """Formats the name of a MTG set so it can be used in a MTGGoldFish url.
     :param printing: name of the set to format
-    :return: formatted printing name"""
+    :return: formatted printing name
+    """
     printing = format_for_url(printing)
-    if EDITION_PATTERN.match(printing):
+    if printing == 'Modern Masters 2015':
+        return printing
+    elif EDITION_PATTERN.match(printing) or 'Commander 2013' == printing:
         return printing + ' Edition'
     elif MAGIC_CORE_SET_PATTERN.match(printing):
         return printing + ' Core Set'
@@ -96,24 +100,24 @@ def format_printing_name(printing):
     return printing
 
 
-def format_for_url(name):
+def format_for_url(name: str) -> str:
     """Formats the given text so it can be used in a MTGoldFish url by removing all commas, apostrophes, forwards
     slashes, periods, and colons
     :param name: card name to format
-    :return: formatted card name"""
-    for item in ("'", ',', ':', '/', '.'):
-        name = name.replace(item, '')
-    return name
+    :return: formatted card name
+    """
+    return ''.join(map(lambda x: '' if x in ("'", ',', ':', '/', '.') else x, name))
 
 
-def get_mtggoldfish_data(name, printing_abbrv, printing, logger):
-    """Retrieves HTTP text from MTGGoldFish webpage for the printing of the given card, if such a webpage exists.
-    Otherwise returns None. Attempts several different URLs.
+def get_mtggoldfish_data(name: str, printing_abbrv: str, printing: str, logger) -> Optional[str]:
+    """Retrieves HTTP text from MTGGoldFish webpage for the printing of the given card, if such a webpage exists - else
+     returns None. Attempts several different URLs.
     :param name: name of the card to retrieve
-    :param printing_abbrv: abbreviation of the printing of the card
+    :param printing_abbrv: abbreviation of the card's printing
     :param printing: printing of the card to retrieve data for
     :param logger: logger to record any relevant information
-    :return: HTTP text of the card's printing on MTGGoldfish, or None"""
+    :return: HTTP text of the card's printing on MTGGoldfish, or None
+    """
     formatted_name = format_for_url(name)
     formatted_printing = format_printing_name(printing)
 
@@ -125,36 +129,36 @@ def get_mtggoldfish_data(name, printing_abbrv, printing, logger):
 
     for url, msg in urls:
         response = requests.get(url)
-
         if response.ok:
             logger.info(f'Got data for card {name} from {url} with parameters {msg}')
             return response.text
 
-    # no webpage found
     logger.error(f'Failed to fetch prices for card {name} for printing {printing}')
     return None
 
 
-def get_printing_prices(card_name, printing_code, printing, logger):
-    """Retrieves all prices for the given card printing, trying multiple different possible urls. Returns two dictionaries
-    of dates to prices, one for paper printing prices and one for online printing prices. If dict is empty, no prices
+def get_printing_prices(card_name: str, printing_code: str, printing: str, logger) \
+        -> Tuple[Optional[Dict[str, str]], Optional[Dict[str, str]]]:
+    """Retrieves all prices for the given card printing, trying multiple different possible urls. Returns two
+    dictionaries of dates to prices, one for paper printings and one for online printings. If dict is empty, no prices
     were retrieved.
     :param card_name: name of the card to retrieve prices for
     :param printing_code: abbreviation of the printing from which prices are being retrieved for
     :param printing: printing from which prices are being retrieved for
     :param logger: logger to record any useful information
-    :return: dictionaries of dates to prices for any retrieved prices, for paper and online prices"""
+    :return: dictionaries of dates to prices for any retrieved prices, for paper and online prices
+    """
     # try printing non-foil printing code non foil, printing foil, printing code foil
     data = get_mtggoldfish_data(card_name, printing_code, printing, logger)
 
-    paper_prices = {}
-    online_prices = {}
     if not data:  # no data fetched, terminate early
-        return paper_prices, online_prices
+        return {}, {}
 
     matches = DATE_PRICE_PATTERN.findall(data)
 
     # separate paper and online prices, paper prices first
+    paper_prices = {}
+    online_prices = {}
     prev_date = None
     for match in matches:
         date = DATE_PATTERN.search(match).group(0)
@@ -172,14 +176,24 @@ def get_printing_prices(card_name, printing_code, printing, logger):
     return paper_prices, online_prices
 
 
-def divide_list(l: Iterable[Any], n: int) -> List[Any]:
-    n = m.ceil(len(l) / n)
-    return [l[i:i + n] for i in range(0, len(l), n)]
+def divide_list(lst: List[Any], n: int) -> List[List[Any]]:
+    """Divides the given list into n even sized chunks (rounding up).
+    :param lst: list to divide
+    :param n: number of chunks
+    :return: divided list
+    """
+    n = m.ceil(len(lst) / n)
+    return [lst[i:i + n] for i in range(0, len(lst), n)]
 
 
-def get_and_store_prices(database, user, prod_mode):
-    # all cards and printings in db
-
+def get_and_store_prices(database: str, user: str, prod_mode: bool) -> None:
+    """For each card and its associated printings currently stored in the database, attempts to retrieve prices for each
+    card and printing pairing - then store them in the database.
+    :param database: name of the database
+    :param user: username to login into the database with
+    :param prod_mode: boolean signifying production or testing mode
+    :return: None
+    """
     def process(process_id: int, entries: List[Tuple[str, str, str]]) -> None:
         # find prices for each one
         logger = su.init_logging(f'mtgtop8_scrapper_{process_id}.log')

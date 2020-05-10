@@ -1,18 +1,8 @@
-import pandas as pd
 import sys
-import analysis.moving_average as ma
-import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mbd
 import analysis.utility as u
 import analysis.reprint.load_df as ld
-
-
-def fill_in_time(date_frame: pd.DataFrame) -> pd.DataFrame:
-    date_frame = date_frame.resample('D').asfreq()
-    date_frame['price_date'] = date_frame.index
-    date_frame['price'] = date_frame['price'].interpolate('time')
-    return date_frame
 
 
 def plot_card_prices(card: str, is_paper: bool) -> None:

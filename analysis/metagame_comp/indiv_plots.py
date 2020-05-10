@@ -1,53 +1,22 @@
 import analysis.utility as au
 import analysis.moving_average as ma
+import analysis.metagame_comp.common as c
 
 import datetime as dt
-from typing import Tuple, List, Iterable
+from typing import Tuple
 import pathlib as pl
 import sys
 
-import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.interpolate as spi
 import scipy.stats as scs
 
-"""Collection of queries for drawing together useful collections of data for analysis"""
+"""Creates plots showing changes in metagame make up for every deck archetype appearing within a given time period for a 
+given period"""
 
 SPLINE_DEGREE = 2
-DEFAULT_DAY_LENGTH = 14
-DEFAULT_GROUP_COUNT = 15
-
-
-def get_metagame_comp(date: str, length: int, mtg_format: str) -> List[Tuple[str, int]]:
-    """Retrieves the metagame composition, at the archetype level, for the given format starting at 'date' - 'length'
-    days until 'date'
-    :param date: date at which query ends
-    :param length: number of days before given date to start query
-    :param mtg_format: MTG format to search under
-    :return: list of archetype name and its metagame percentage"""
-    query = au.load_query('query.sql').format(date=date, length=length, format=mtg_format)
-    return au.generic_search(query)
-
-
-def metagame_comp_over_time(start_date: str, end_date: str, length: int, mtg_format: str) -> pd.DataFrame:
-    """Returns a Dataframe containing metagame compositions from the given start date to end date, over rolling periods
-    of 'length' days, for the given format. For each day between the start and end, returns the metagame makeup for that
-    day and the past 'length' days. Each row in returned dataframe contains date, archetype, and percentage that
-    archetype made up in metagame on that day
-    :param start_date: dates to start from
-    :param end_date: date to end at
-    :param length: how many previous days to consider in metgame makeup for a given day
-    :param mtg_format: format to search under
-    :return: Dataframe with metagame compositions over time"""
-    dates_to_metagames = {date: get_metagame_comp(date, length, mtg_format)
-                          for date in au.date_range(start_date, end_date, length)}
-    rows = [(date, *metagame) for date, metagames in dates_to_metagames.items() for metagame in metagames]
-    data_frame = pd.DataFrame(columns=['date', 'archetype', 'percentage'], data=rows)
-    data_frame['date'] = pd.to_datetime(data_frame['date'])  # set as date type
-    data_frame = data_frame.set_index(pd.DatetimeIndex(data_frame['date']))
-    return data_frame
 
 
 def create_pic_dirc(format: str, start_date: str, end_date: str) -> pl.Path:
@@ -56,7 +25,8 @@ def create_pic_dirc(format: str, start_date: str, end_date: str) -> pl.Path:
     :param format: MTG format that was searched under
     :param start_date: date the search was started
     :param end_date: date the search was ended
-    :return: Path containing the resulting directory"""
+    :return: Path containing the resulting directory
+    """
     dirc = pl.Path(f'{format}/{start_date}_to_{end_date}')
     dirc.mkdir(parents=True, exist_ok=True)
     return dirc
@@ -67,83 +37,14 @@ def spline_estimate(x: np.array, y: np.array) -> np.array:
     returning the spline estimate on x
     :param x: 1D array of x data
     :param y: 1D array of y data
-    :return: spline estimate of x, from function fitted to x & y"""
+    :return: spline estimate of x, from function fitted to x & y
+    """
     return spi.UnivariateSpline(x=x, y=y, k=SPLINE_DEGREE)(x)
 
 
 def linear_estimate(x: np.array, y: np.array) -> np.array:
     slope, intercept, _, _, _ = scs.linregress(x, y)
     return (slope * x) + intercept
-
-
-def select_top_decks(metagame_comps: pd.DataFrame) -> List[Tuple[str, pd.DataFrame]]:
-    # TODO figure out proper selection criteria
-    metagame_comps = [(name, group) for name, group in metagame_comps.groupby('archetype')]
-
-    def get_time_range(group: pd.DataFrame) -> int:
-        return (group['date'].max() - group['date'].min()).days
-
-    metagame_comps = [(name, group, get_time_range(group)) for name, group in metagame_comps]
-    longest_time_range = max(map(lambda x: x[-1], metagame_comps))
-    metagame_comps = filter(lambda x: x[-1] > (.9 * longest_time_range), metagame_comps)
-    metagame_comps = sorted(map(lambda x: (x[0], x[1], x[1]['percentage'].mean()), metagame_comps), key=lambda x: x[-1],
-                            reverse=True)
-    return list(map(lambda x: (x[0], x[1]), metagame_comps))[:DEFAULT_GROUP_COUNT]
-
-
-def add_other_data(decks: np.array) -> np.array:
-    other_decks = np.apply_along_axis(func1d=lambda x: 100 - np.sum(x), axis=0, arr=decks)
-    return np.vstack([decks, other_decks])
-
-
-def fill_in_array(array: np.array, new_size: int, start_buffer: int) -> np.array:
-    assert len(array.shape) == 1
-    if start_buffer == 0 and array.shape[0] == new_size:
-        return array[:]
-    new_array = np.zeros(new_size, dtype=array.dtype)
-    end_idx = min(new_size, start_buffer + len(array))
-    new_array[start_buffer:end_idx] = array[:]
-    return new_array
-
-
-def plot_metagame(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
-    major_groups = select_top_decks(metagame_comps)
-
-    filled_groups = {}
-    for name, group in major_groups:
-        group = fill_in_time(group)
-        filled_groups[name] = ma.trailing_moving_avg(group['date'], group['percentage'], trailing_size=45)
-
-    longest_date = max([group[0] for group in filled_groups.values()], key=lambda x: len(x))
-    filled_arrays = []
-    deck_names = []
-    for name, group in filled_groups.items():
-        deck_names.append(name)
-        start_idx = np.where(longest_date == group[0][0])[0][0]  # TODO: this can be done with simple math
-        filled_arrays.append(fill_in_array(group[1], len(longest_date), start_idx))
-
-    filled_arrays = np.vstack(filled_arrays)
-    filled_arrays = add_other_data(filled_arrays)
-    deck_names.append('Other Decks')
-
-    longest_date = longest_date.apply(mpd.date2num)
-
-    fig, ax = plt.subplots()
-
-    ax.stackplot(longest_date, *filled_arrays, labels=deck_names)
-    ax.xaxis.set_major_formatter(mpd.DateFormatter('%Y-%m-%d'))
-    plt.title('Metagame Composition')
-    plt.ylabel('Metagame Percentage')
-    plt.xlabel('Date')
-    plt.legend()
-    plt.savefig(save_dirc)
-
-
-def fill_in_time(group: pd.DataFrame) -> pd.DataFrame:
-    group = group.resample('D').asfreq()
-    group['date'] = group.index
-    group['percentage'] = group['percentage'].interpolate('time')
-    return group
 
 
 def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
@@ -161,10 +62,9 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
     max_percentage = np.full(len(all_dates), fill_value=metagame_comps['percentage'].head(10).mean())
 
     for archetype, group in archetype_groups:
-
         # interpolate missing dates
         group = group.sort_index()
-        group = fill_in_time(group)
+        group = au.fill_in_time(group, 'date', 'percentage')
 
         fig, axes = plt.subplots()
 
@@ -203,13 +103,11 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
 
 
 def main(start_date: str, end_date: str, mtg_format: str, plot_type: str, length: int) -> None:
-    data = metagame_comp_over_time(start_date, end_date, length, mtg_format)
+    data = c.metagame_comp_over_time(start_date, end_date, length, mtg_format)
     title_path = create_pic_dirc(mtg_format, start_date, end_date)
 
     if plot_type == 'i':
         plot_indiv_metagame_comps(data, title_path)
-    elif plot_type == 'm':
-        plot_metagame(data, title_path)
 
 
 def parse_args() -> Tuple[str, str, str, str, int]:
