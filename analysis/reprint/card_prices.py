@@ -4,6 +4,9 @@ import matplotlib.dates as mbd
 import analysis.utility as u
 import analysis.reprint.load_df as ld
 
+"""Creates a plot displaying all the prices stored in the database for a given card, for all associated printings with
+scrapped prices"""
+
 
 def plot_card_prices(card: str, is_paper: bool) -> None:
     data = ld.get_price_and_reprint_info(card, is_paper).drop('rarity', axis=1)
@@ -27,6 +30,7 @@ def plot_card_prices(card: str, is_paper: bool) -> None:
 
     date_prices = price_data.groupby('price_date').agg(func='mean')
     prices = list(map(mbd.date2num, date_prices.index))
+    # TODO moving average
     plt.plot_date(x=prices, y=date_prices['price'], label='Average Price', **u.PLOT_ARGS)
 
     plt.title(f'{card} {"Paper" if is_paper else "Online"} Prices')
@@ -34,7 +38,6 @@ def plot_card_prices(card: str, is_paper: bool) -> None:
     plt.ylabel('Price')
     plt.xlabel('Date')
     plt.show()
-    # TODO finish me
 
 
 def main():

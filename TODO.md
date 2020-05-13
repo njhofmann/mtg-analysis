@@ -26,10 +26,6 @@
 
 ###Immediate
 * redo arg parsers
-* stacked plots
-* abstract helper functions in analysis
-* missing sets
-* split indiv and metagame scripts
 * load sql data -> proper types before returnign dataframe
 
 ### Style
@@ -39,9 +35,6 @@
 * DOCUMENT EVERYTHING!!!
 
 ### Analysis
-* Metagame trends
-  * Overlay graph of most popular decks
-* complete pricing trend graphs
 * refactor, renamem and document code
 * prediction setups?
 

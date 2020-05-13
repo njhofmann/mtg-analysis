@@ -14,7 +14,8 @@ PLOT_ARGS = {'linestyle': '-', 'marker': ',', 'xdate': True}
 def generic_search(search_query: str) -> List:
     """Generic function that executes a search query in the database and returns the results.
     :param search_query: search query to execute
-    :return: results of search query"""
+    :return: results of search query
+    """
     with psycopg2.connect(user=ddr.USER, database=ddr.DATABASE_NAME) as con:
         with con.cursor() as cursor:
             cursor.execute(search_query)
@@ -22,12 +23,23 @@ def generic_search(search_query: str) -> List:
 
 
 def load_query(path: Union[str, pl.Path]) -> str:
+    """Loads the SQL query at the given path as a String
+    :param path: path to the SQL file to load
+    :return: SQL file as string
+    """
     with open(path, 'r') as f:
         lines = f.readlines()
     return ''.join(lines)
 
 
 def date_range(start: str, end: str, start_buffer: int) -> Generator[str, None, None]:
+    """Generator giving the dates between the given start and end dates (inclusive), starting 'start_buffer' days after
+    start date. Dates are in the form of "year-month-day"
+    :param start: start date
+    :param end: end date
+    :param start_buffer: days after start date to begin generating
+    :return: stream of dates between start and end date
+    """
     date_format = '%Y-%m-%d'
     convert = lambda x: dt.datetime.strptime(x, date_format).date()
     start = convert(start) + dt.timedelta(days=start_buffer)
@@ -40,7 +52,8 @@ def date_range(start: str, end: str, start_buffer: int) -> Generator[str, None, 
 def to_matplotlib_dates(dates: Iterable[str]) -> np.array:
     """Converts a series of String dates in the form of "year-month-day" into Matplotlib dates
     :param dates: series of String dates
-    :return: converted series of dates"""
+    :return: converted series of dates
+    """
     return np.array([mpd.datestr2num(date) for date in dates])
 
 

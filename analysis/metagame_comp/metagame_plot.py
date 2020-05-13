@@ -70,7 +70,7 @@ def plot_metagame(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
     filled_groups = {}
     for name, group in select_top_decks(metagame_comps):
         group = u.fill_in_time(group, 'date', 'percentage')
-        filled_groups[name] = ma.trailing_moving_avg(group['date'], group['percentage'], trailing_size=45)
+        filled_groups[name] = ma.trailing_moving_avg(group['date'], group['percentage'], trail_size=45)
 
     longest_date = max([group[0] for group in filled_groups.values()], key=lambda x: len(x))
     filled_arrays = []

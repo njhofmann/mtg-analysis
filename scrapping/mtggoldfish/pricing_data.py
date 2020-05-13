@@ -3,9 +3,11 @@ import re
 import datetime as dt
 import multiprocessing as mp
 import math as m
-from typing import List, Any, Iterable, Tuple, Optional, Dict
+from typing import List, Any, Tuple, Optional, Dict
+
 from psycopg2 import sql
 import psycopg2
+
 import scrapping.utility as su
 import database.db_reader as dbr
 

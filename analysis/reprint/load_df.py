@@ -3,6 +3,12 @@ import analysis.utility as u
 
 
 def get_price_and_reprint_info(card: str, paper_prices: bool) -> pd.DataFrame:
+    """Retrieves a DataFrame of all the prices associated with the given card, for all associated printings with
+    scrapped prices
+    :param card: name of card
+    :param paper_prices: to retrieve paper or online prices
+    :return: DataFrame of all pricing info associated with the given card in the database
+    """
     paper = 't' if paper_prices else 'f'
     query = u.load_query('query.sql').format(card=card, paper=paper)
     sql_data = u.generic_search(query)

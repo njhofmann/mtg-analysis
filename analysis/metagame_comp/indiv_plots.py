@@ -78,9 +78,9 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
         # axes.plot_date(x=dates, y=fitted_percents, color='g', label='Spline Estimate', **plot_args)
         axes.plot_date(x=dates, y=linear_fit, color='b', label='Linear Estimate', **au.PLOT_ARGS)
         # axes.plot_date(*ma.central_moving_average(dates, percents, side_size=20), color='g', label='Moving Avg', **plot_args)
-        axes.plot_date(*ma.trailing_moving_avg(dates, percents, trailing_size=30, method='u', recur=1), color='r',
+        axes.plot_date(*ma.trailing_moving_avg(dates, percents, trail_size=30, method='u', recur=1), color='r',
                        label='Cum Avg', **au.PLOT_ARGS)
-        axes.plot_date(*ma.trailing_moving_avg(dates, percents, trailing_size=30, method='u', recur=2), color='green',
+        axes.plot_date(*ma.trailing_moving_avg(dates, percents, trail_size=30, method='u', recur=2), color='green',
                        label='Cum Avg', **au.PLOT_ARGS)
         axes.plot_date(x=all_dates, y=max_percentage, color='w', **au.PLOT_ARGS)  # aligns x and y axis across all plots
         axes.legend()
