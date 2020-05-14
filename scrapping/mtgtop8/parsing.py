@@ -140,7 +140,7 @@ def get_entry_deck_info(entry_soup):
 
         # remove ending of 'decks'
         if deck_archetype.endswith('decks'):
-            deck_archetype = deck_archetype[:-5] + ' ' + deck_archetype[-5:]
+            deck_archetype = deck_archetype[:-6]
 
     # if no archetype found, try images
     elif deck_archetype is None:

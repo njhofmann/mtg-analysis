@@ -13,7 +13,8 @@ def insert_into_tournament_info(event_name, event_date, event_format, event_url,
     :param event_url: url from which tournament info was pulled from
     :param db_cursor: cursor of the database where info will be pushed
     :param logger: logger by which info will be logged
-    :return: None"""
+    :return: None
+    """
 
     def insert_query_func():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}) VALUES (%s, %s, %s, %s)').format(
@@ -35,7 +36,8 @@ def get_tournament_info_id(event_name, event_date, event_format, event_url, db_c
     :param event_format:
     :param event_url:
     :param db_cursor:
-    :return:"""
+    :return:
+    """
     tourny_id_query = sql.SQL('SELECT {} FROM {} WHERE {} = %s AND {} = %s AND {} = %s AND {} = %s').format(
         sql.Identifier('tourny_id'),
         sql.Identifier('events', 'event_info'),
@@ -48,13 +50,13 @@ def get_tournament_info_id(event_name, event_date, event_format, event_url, db_c
 
 
 def update_tournament_info_size(tourny_id, size, db_cursor, logger):
-    """
-    Updates the size of the tournament with the given unique ID in the database associated with the given cursor.
+    """Updates the size of the tournament with the given unique ID in the database associated with the given cursor.
     :param tourny_id: id of the event in the database
     :param size: new size to set of given tournament
     :param db_cursor: cursor of database where tournament info resides
     :param logger: logger to log info with
-    :return: None"""
+    :return: None
+    """
     update_query = sql.SQL('UPDATE {} SET {} = %s WHERE {} = %s').format(
         sql.Identifier('events', 'event_info'),
         sql.Identifier('size'),
@@ -74,8 +76,8 @@ def insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, play
     :param placement_url:
     :param db_cursor:
     :param logger:
-    :return:"""
-
+    :return:
+    """
     def insert_query_func():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}, {}, {}) VALUES (%s, %s, %s, %s, %s, %s)').format(
             sql.Identifier('events', 'event_entry'),
@@ -100,7 +102,8 @@ def get_tournament_entry_id(tourny_id, deck_archetype, deck_placement, player_na
     :param deck_placement:
     :param player_name:
     :param db_cursor:
-    :return:"""
+    :return:
+    """
     entry_id_query = sql.SQL('SELECT {} FROM {} WHERE {} = %s AND {} = %s AND {} = %s AND {} = %s').format(
         sql.Identifier('entry_id'),
         sql.Identifier('events', 'event_entry'),
@@ -120,8 +123,8 @@ def insert_into_entry_card(entry_id, card_name, in_mainboard, quantity, db_curso
     :param quantity:
     :param db_cursor:
     :param logger:
-    :return:"""
-
+    :return:
+    """
     def insert_query_func():
         insert_query = sql.SQL('INSERT INTO {} ({}, {}, {}, {}) VALUES (%s, %s, %s, %s)').format(
             sql.Identifier('events', 'entry_card'),

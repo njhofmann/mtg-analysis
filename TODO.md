@@ -1,6 +1,4 @@
 ### MTGTop8 parser
-* upto date scrapping for existing formats
-* automatically stopping parsing (errors?)
 * combine list comprehensions / turn into functions
 
 ### MTG Goldfish Scrapper
@@ -9,12 +7,11 @@
 
 ### DB Schemas
 * on delete cascade
-* Add format periods and legal blocks
 * Table desps how?
 * Update changes across project
+* clean up 'deck' of archetype names
 * Major vs non major events
 * Online vs paper events
-* Update database tables and namings
 
 ### TCGPlayer
 * look into drawing prices for price hikes or trends
@@ -26,17 +23,19 @@
 
 ###Immediate
 * redo arg parsers
-* load sql data -> proper types before returnign dataframe
+* load sql data -> proper types before returning dataframe
 
 ### Style
-* data types / type hints
+* type annotations
 * f-strings
 * sql format calls, one per line
-* DOCUMENT EVERYTHING!!!
+* documentation and comments
 
 ### Analysis
-* refactor, renamem and document code
+* refactor, rename and document code
 * prediction setups?
+    * reprint 
+    * metagame 
 
 ### misc
 * get tcgplayer api key

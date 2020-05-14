@@ -21,7 +21,8 @@ def get_and_wait(url, data=None):
     overwhelmed and that scrapping appears less conspicuous.
     :param url: url to fetch data from
     :param data: any additional data to send with url_data, treats as a post request if included
-    :return: HTML BeautifulSoup parser on the HTML text the request on url_data returns"""
+    :return: HTML BeautifulSoup parser on the HTML text the request on url_data returns
+    """
     url_data = requests.post(url=url, data=data) if data else requests.get(url=url)
     time.sleep(random.random() * 2)
     return bs4.BeautifulSoup(markup=url_data.text, features='html.parser')
@@ -35,8 +36,8 @@ def retrieve_and_parse(search_url, url_format, database, prod_mode, user=dbr.USE
     :param url_format: format being queried
     :param database: name of Postgres database
     :param user: login user for given database
-    :return: None"""
-
+    :return: None
+    """
     def process(page: int, page_leap: int, parsing: mp.Value):
         logger = init_logging(f'mtgtop8_scrapper_{page}.log')
         try:
@@ -88,7 +89,8 @@ def parse_event(tourny_id, event_url, base_url, db_cursor, logger, prod_mode):
     :param db_cursor: cursor of the database to insert info in
     :param logger: logger to log info with
     :param prod_mode:
-    :return: None"""
+    :return: None
+    """
     url_data = get_and_wait(event_url)
     deck_parents, event_size = prs.get_event_info(url_data)
 
@@ -113,14 +115,17 @@ def parse_entry(tourny_id, placement_url, deck_name, deck_placement, player_name
     :param db_cursor: cursor of database info will be entered into
     :param logger: logger to log status of scrapping
     :param prod_mode:
-    :return: None"""
+    :return: None
+    """
     url_soup = get_and_wait(placement_url)
 
     # deck archetype can only be retrieved from deck url
     cards, deck_archetype = prs.get_entry_deck_info(url_soup)
 
     if deck_archetype is None:
-        deck_archetype = deck_name
+        deck_archetype = 'unknown' if deck_name is None else deck_name
+
+    deck_archetype = deck_archetype.lower()
 
     # insert deck specific info (ie not card info)
     dbc.insert_into_tournament_entry(tourny_id, deck_archetype, deck_placement, player_name, deck_name, placement_url,

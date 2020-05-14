@@ -1,10 +1,13 @@
-import pandas as pd
-import numpy as np
 from typing import List, Tuple
 import pathlib as pl
+
+import pandas as pd
+import numpy as np
+
 import analysis.moving_average as ma
 import matplotlib.dates as mpd
 import matplotlib.pyplot as plt
+import analysis.metagame_comp.common as c
 import analysis.utility as u
 
 DEFAULT_GROUP_COUNT = 15
@@ -96,7 +99,14 @@ def plot_metagame(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
 
 
 def main():
-    pass
+    args = c.parse_user_args()
+    start_date = args['-s']
+    end_date = args['-e']
+    mtg_format = args['-f']
+    length = args['-l']
+    data = c.metagame_comp_over_time(start_date, end_date, length, mtg_format)
+    title_path = c.create_pic_dirc(mtg_format, start_date, end_date)
+    plot_metagame(data, title_path)
 
 
 if __name__ == '__main__':

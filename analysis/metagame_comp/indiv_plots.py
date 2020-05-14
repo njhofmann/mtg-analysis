@@ -19,19 +19,6 @@ given period"""
 SPLINE_DEGREE = 2
 
 
-def create_pic_dirc(format: str, start_date: str, end_date: str) -> pl.Path:
-    """Returns, and creates if needed, a series of directories to store search results under when searching under the
-    given path - from start date to end date
-    :param format: MTG format that was searched under
-    :param start_date: date the search was started
-    :param end_date: date the search was ended
-    :return: Path containing the resulting directory
-    """
-    dirc = pl.Path(f'{format}/{start_date}_to_{end_date}')
-    dirc.mkdir(parents=True, exist_ok=True)
-    return dirc
-
-
 def spline_estimate(x: np.array, y: np.array) -> np.array:
     """Returns a single variable spline for the given x & y data, fitting a spline function to x & y - but then
     returning the spline estimate on x
@@ -102,34 +89,16 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
         plt.close(fig)
 
 
-def main(start_date: str, end_date: str, mtg_format: str, plot_type: str, length: int) -> None:
+def main() -> None:
+    args = c.parse_user_args()
+    start_date = args['-s']
+    end_date = args['-e']
+    mtg_format = args['-f']
+    length = args['-l']
     data = c.metagame_comp_over_time(start_date, end_date, length, mtg_format)
-    title_path = create_pic_dirc(mtg_format, start_date, end_date)
-
-    if plot_type == 'i':
-        plot_indiv_metagame_comps(data, title_path)
-
-
-def parse_args() -> Tuple[str, str, str, str, int]:
-    args = sys.argv
-
-    def valid_date(date: str) -> str:
-        try:
-            return dt.datetime.strptime(date, '%Y-%M-%d').strftime('%Y-%M-%d')
-        except ValueError as e:
-            raise ValueError(f'date must be in form of "year-month-day"')
-
-    if len(args) not in (5, 6):
-        raise ValueError(f'usage {args[0]}: start-date, end-date, format, plot-type length (optional)')
-
-    length = DEFAULT_DAY_LENGTH if len(args) == 5 else int(args[-1])
-    plot_type = args[-1] if len(args) == 5 else args[-2]
-
-    if plot_type not in ('i', 'm'):
-        raise ValueError(f'valid plot types: i for individual plots, m for metagame plot')
-
-    return valid_date(args[1]), valid_date(args[2]), args[3], plot_type, length
+    save_path = c.create_pic_dirc(mtg_format, start_date, end_date)
+    plot_indiv_metagame_comps(data, save_path)
 
 
 if __name__ == '__main__':
-    main(*parse_args())
+    main()
