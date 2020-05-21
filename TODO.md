@@ -7,10 +7,7 @@
 
 ### DB Schemas
 * on delete cascade
-* Table desps how?
-* Update changes across project
-* clean up 'deck' of archetype names
-* Major vs non major events
+* table comments
 * Online vs paper events
 
 ### TCGPlayer
@@ -20,10 +17,6 @@
 * dockerize data scrappers
 * connect to outside db
 * automated docker compose file (keep order in mind)
-
-###Immediate
-* redo arg parsers
-* load sql data -> proper types before returning dataframe
 
 ### Style
 * type annotations
