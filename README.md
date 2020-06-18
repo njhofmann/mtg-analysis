@@ -2,11 +2,11 @@
 Time series analysis and prediction of competitive level play and card prices for Magic: The Gathering.
 
 # Motivation
-This project aims to provide a database combining tournament level / metagame data, card prices, and card info (CMC, 
-printed sets, types, etc.). In addition to a series of investigations carried out on said data source motivated by the 
+This project aims to provide a comprehensive database combining tournament level metagame data, card prices, and card 
+info (CMC, printed sets, types, etc.). In addition to a series of investigations carried out on said data motivated by the 
 following questions:
 
-* How have the prices for decks in non-rotating formats changed over time?
+* How have the prices for cards and decks in non-rotating formats changed over time?
 * How have format metagame compositions changed over time? Can they be predicted using current metagame compositions?
 * How does a card seeing more or less play overtime impact its price? 
 * What impact do reprints have on the price of MTG cards? Can this impact be predicted?
@@ -18,7 +18,7 @@ This project was build using Python 3.8 and the libraries listed under `requirem
 The source root directory this project was built on is the parent directory where all top level files and subdirectories,
 such as the `README.md` reside.
 
-The database was built on top of PostgreSQL
+The database was built on top of PostgreSQL 2.8.
 
 #### Database
 This directory contains all the scripts and other supporting files necessary for setting up a blank version of the
@@ -36,15 +36,20 @@ questions of this project. More info can be found in the documentation of each f
 as in the process reports for each analysis underlying it's assumptions and usage.  
 
 ### Building the Database
-1.) Request a dump of the database, load it into a blank Postgres database.
+The size of the database is larger than the free tier of GitHub's Large File Storage, so to acquire a copy of the
+for your own purposes do one of the following:
+
+1. Request a dump of the database from me
+1. Load it into a blank Postgres database.
 
 **or**
 
 1. Initialize a blank copy of the database under `database/db_init.py`.
-2. Repopulate the database by rerunning the scrapping scripts under `scrapping/scrap_all.py`.
+1. Repopulate the database by rerunning the scrapping scripts under `scrapping/scrap_all.py`.
 
-Fair warning, attempting to repopulate the database manually may take upwards of one to two days, depending on the 
-capabilities of your system.
+Fair warning, attempting to repopulate the database manually may take upwards of 1-2 days, depending on the capabilities 
+of your system. Recommended you adjust the multiprocessing parameters of each scrapper, the more the faster scrapping 
+will go.
 
 # Licensing
 This project's code and data are completely free to use, modify, copy, or redistribute under the GPL3 license. However 
