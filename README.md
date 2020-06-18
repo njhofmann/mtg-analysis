@@ -16,10 +16,26 @@ This project was build using Python 3.8 and the libraries listed under `requirem
 `pip install -r requirements.txt`.
 
 The source root directory this project was built on is the parent directory where all top level files and subdirectories,
-such as the `README.md` reside.
+such as the `README.md` reside. Any scripts that are run should be run as modules formatted like `python -m path.to.script
+insert_arguments_here` (dots instead of back slashes, drop the .py extension).
 
-The database was built on top of PostgreSQL 2.8.
+### Building the Database
+The size of the database is larger than the free tier of GitHub's Large File Storage, so to acquire a copy of the
+for your own purposes - the following must be done:
 
+1. Setup Python environment as described above
+1. Install [Postgres 11](https://www.postgresql.org/) 
+1. One of the following:
+    1. Request a dump of the database from myself via Github or one of my other contact points. Load the dump into the database with `database/db_init.py`. This creates a new database with data intact.
+    1. Initialize a blank copy of the database under `database/db_init.py`, after having installed Postgres. Repopulate the database by rerunning the scrapping scripts under `scrapping/scrap_all.py`.
+
+Fair warning, attempting to repopulate the database manually may take upwards of 1-2 days, depending on the capabilities 
+of your system. Recommended you adjust the multiprocessing parameters of each scrapper, the more the faster scrapping 
+will go.
+
+The configuration info used for the database is under `database/db-config.yaml`. Read `database/db_init.py` for instructions on how to run the script
+
+# Directories
 #### Database
 This directory contains all the scripts and other supporting files necessary for setting up a blank version of the
 database, backing up an existing version of the database, and loading login info. More information can be found in the 
@@ -34,22 +50,6 @@ this subdirectory.
 This directory contains all the scripts necessary for recreating the analyses attempting to answer the motivating 
 questions of this project. More info can be found in the documentation of each file under this subdirectory, as well 
 as in the process reports for each analysis underlying it's assumptions and usage.  
-
-### Building the Database
-The size of the database is larger than the free tier of GitHub's Large File Storage, so to acquire a copy of the
-for your own purposes do one of the following:
-
-1. Request a dump of the database from me
-1. Load it into a blank Postgres database.
-
-**or**
-
-1. Initialize a blank copy of the database under `database/db_init.py`.
-1. Repopulate the database by rerunning the scrapping scripts under `scrapping/scrap_all.py`.
-
-Fair warning, attempting to repopulate the database manually may take upwards of 1-2 days, depending on the capabilities 
-of your system. Recommended you adjust the multiprocessing parameters of each scrapper, the more the faster scrapping 
-will go.
 
 # Licensing
 This project's code and data are completely free to use, modify, copy, or redistribute under the GPL3 license. However 

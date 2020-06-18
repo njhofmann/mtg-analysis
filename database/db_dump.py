@@ -2,7 +2,7 @@ import subprocess as sbp
 import zipfile as zp
 import database.db_reader as dbr
 
-"""Module for creating a backup of the database based off of the given params"""
+"""Module for creating a backup / text dump of the database based off of the given params"""
 
 
 def create_dump(db_name, backup_name, user):
@@ -11,7 +11,8 @@ def create_dump(db_name, backup_name, user):
     :param db_name: name of the database to dump
     :param backup_name: name of created dump file
     :param user: user to login into database as
-    :return: None"""
+    :return: None
+    """
     command = ['pg_dump', '-d', db_name, '-f', backup_name, '-U', user]
     process = sbp.Popen(args=command, stdout=sbp.PIPE, stderr=sbp.PIPE)
     process.wait()
