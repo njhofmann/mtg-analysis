@@ -1,6 +1,7 @@
 import logging as log
-import psycopg2
 from typing import Callable
+
+import psycopg2
 
 """Module providing common functions for logging and psycopg2 exception handling across whole of the project"""
 

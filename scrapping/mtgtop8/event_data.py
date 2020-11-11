@@ -1,14 +1,16 @@
-import re
+import multiprocessing as mp
 import random
+import re
 import time
+
+import bs4
 import psycopg2.errors
+import requests
+
+import database.db_reader as dbr
 import scrapping.mtgtop8.db_conns as dbc
 import scrapping.mtgtop8.parsing as prs
-import requests
-import bs4
-import multiprocessing as mp
 from scrapping.utility import init_logging
-import database.db_reader as dbr
 
 WORKER_COUNT = 4
 

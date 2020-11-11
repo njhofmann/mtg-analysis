@@ -1,15 +1,15 @@
-import requests
-import re
 import datetime as dt
-import multiprocessing as mp
 import math as m
+import multiprocessing as mp
+import re
 from typing import List, Any, Tuple, Optional, Dict
 
-from psycopg2 import sql
 import psycopg2
+import requests
+from psycopg2 import sql
 
-import scrapping.utility as su
 import database.db_reader as dbr
+import scrapping.utility as su
 
 """Module for pulling all the pricing data available for each card and its associated printings in the database."""
 

@@ -1,9 +1,11 @@
-import scrapping.scryfall.utility as ssu
+from typing import Tuple, Set
+
 import psycopg2
-import scrapping.utility as su
 from psycopg2 import sql
+
 import database.db_reader as dbr
-from typing import List, Tuple, Set
+import scrapping.utility as su
+from scrapping.scryfall import utility as ssu, set_info as si
 
 """Module for pulling card info from the Scryfall API"""
 
@@ -167,13 +169,18 @@ def get_stored_card_data(database, user, logger, prod_mode):
     with psycopg2.connect(database=database, user=user) as conn:
         conn.autocommit = True
         with conn.cursor() as cursor:
-            # get all cards stored in database
-            recorded_cards = get_cards_in_db(cursor, logger)
+            for set_name, set_info in si.get_set_data(logger).items():
+                cards = ssu.json_from_url(set_info['search_uri'])
+                has_cards = True
+                while has_cards:
+                    for card_data in cards['data']:
+                        parse_and_store(card_data, cursor, logger, prod_mode)
 
-            # for each card get data from Scryfall, then parse and store it appropriately
-            for card in recorded_cards:
-                card_data = get_card_data(card, logger)
-                parse_and_store(card_data, cursor, logger, prod_mode)
+                    # might have multiple pages
+                    if cards['has_more']:
+                        cards = ssu.json_from_url(set_info['search_uri'])
+                    else:
+                        has_cards = False
 
 
 def main(prod_mode):

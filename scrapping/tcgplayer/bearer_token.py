@@ -1,5 +1,6 @@
-import requests
 import ast
+
+import requests
 import yaml
 
 """Requests a new bearer token from the TCGPlayer API to request data from the TCGPlayer API"""

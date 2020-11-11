@@ -2,7 +2,7 @@ import psycopg2
 import sys
 from psycopg2 import sql
 import database.db_reader as r
-
+import subprocess as sbp
 
 """Module for creating a new instance of the database this project interpoles with"""
 
@@ -21,8 +21,8 @@ def create_new_db(db_schema: str, replace_existing: bool) -> None:
         with con.cursor() as cursor:
             # remove all other active sessions
             remove_query = sql.SQL('SELECT pg_terminate_backend(pg_stat_activity.pid) '
-                                   'FROM pg_stat_activity WHERE pg_stat_activity.datname = {}  pg_backend_pid()'.
-                                   format(sql.Identifier(r.DATABASE_NAME)))
+                                   'FROM pg_stat_activity WHERE pg_stat_activity.datname = {} '
+                                   'AND pid <> pg_backend_pid()').format(sql.Identifier(r.DATABASE_NAME))
             cursor.execute(remove_query)
 
             # delete database if it exists, create new one from init file
@@ -31,12 +31,13 @@ def create_new_db(db_schema: str, replace_existing: bool) -> None:
             cursor.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(r.DATABASE_NAME)))
 
     # open connection to new database and insert schema
-    with psycopg2.connect(user=r.USER, password=r.PASSWORD, dbname=r.DATABASE_NAME) as con:
-        with con.cursor() as cursor:
-            with open(db_schema) as init:
-                schema = ''.join([line.strip() for line in init.readlines()])
-            cursor.execute(schema)
-            con.commit()
+    command = ['psql', '-d', 'mtg_analysis', '-f', db_schema]
+    process = sbp.Popen(args=command, stdout=sbp.PIPE, stderr=sbp.PIPE)
+    process.wait()
+    out, err = process.communicate()
+    out = out.decode('utf-8')
+    err = err.decode('utf-8')
+    print(err if process.returncode != 0 else out)
 
 
 if __name__ == '__main__':

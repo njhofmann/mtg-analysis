@@ -91,10 +91,10 @@ def plot_indiv_metagame_comps(metagame_comps: pd.DataFrame, save_dirc: pl.Path) 
 
 def main() -> None:
     args = c.parse_user_args()
-    start_date = args['-s']
-    end_date = args['-e']
-    mtg_format = args['-f']
-    length = args['-l']
+    start_date = args['s']
+    end_date = args['e']
+    mtg_format = args['f']
+    length = args['l']
     data = c.metagame_comp_over_time(start_date, end_date, length, mtg_format)
     save_path = c.create_pic_dirc(mtg_format, start_date, end_date)
     plot_indiv_metagame_comps(data, save_path)

@@ -1,4 +1,5 @@
 from psycopg2 import sql
+
 import scrapping.utility as su
 
 """Module for inserting tournament data from mtgtop8.com."""

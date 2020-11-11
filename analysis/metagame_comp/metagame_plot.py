@@ -73,7 +73,8 @@ def plot_metagame(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
     filled_groups = {}
     for name, group in select_top_decks(metagame_comps):
         group = u.fill_in_time(group, 'date', 'percentage')
-        filled_groups[name] = ma.trailing_moving_avg(group['date'], group['percentage'], trail_size=45)
+        filled_groups[name] = ma.trailing_moving_avg(group['date'], group['percentage'], trail_size=45, method='w',
+                                                     smooth=.5, recur=False)
 
     longest_date = max([group[0] for group in filled_groups.values()], key=lambda x: len(x))
     filled_arrays = []
@@ -100,11 +101,17 @@ def plot_metagame(metagame_comps: pd.DataFrame, save_dirc: pl.Path) -> None:
 
 def main():
     args = c.parse_user_args()
-    start_date = args['-s']
-    end_date = args['-e']
-    mtg_format = args['-f']
-    length = args['-l']
+    print(args)
+    start_date = args.s
+    end_date = args.e
+    mtg_format = args.f
+    length = args.l
     data = c.metagame_comp_over_time(start_date, end_date, length, mtg_format)
+
+    if args.d:
+        save_path = f'{mtg_format}_{start_date}_{end_date}.csv'
+        data.to_csv(save_path)
+
     title_path = c.create_pic_dirc(mtg_format, start_date, end_date)
     plot_metagame(data, title_path)
 

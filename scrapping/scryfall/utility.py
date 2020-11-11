@@ -1,5 +1,6 @@
 import json
 import time
+
 import requests
 from psycopg2 import sql
 
@@ -7,7 +8,7 @@ from psycopg2 import sql
 
 # Constants
 SCRYFALL_ENCODING = 'utf-8'
-REQUEST_DELAY = .1
+REQUEST_DELAY = .2
 
 
 def json_from_url(url):

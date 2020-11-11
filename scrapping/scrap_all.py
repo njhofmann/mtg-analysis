@@ -1,7 +1,7 @@
 import scrapping.mtggoldfish.pricing_data as p
-import scrapping.scryfall.set_info as s
-import scrapping.scryfall.card_info as c
 import scrapping.mtgtop8.event_data as e
+import scrapping.scryfall.card_info as c
+import scrapping.scryfall.set_info as s
 
 """Module for running each scrapper in the correct order"""
 

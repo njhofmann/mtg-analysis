@@ -68,5 +68,6 @@ def parse_user_args() -> ap.Namespace:
     parser.add_argument('-s', required=True, help='start date', type=valid_date)
     parser.add_argument('-e', required=True, help='end date', type=valid_date)
     parser.add_argument('-f', required=True, help='MTG format')
-    parser.add_argument('-l', required=True, help='number of days to use as average for queried days')
+    parser.add_argument('-l', required=True, help='number of days to use as average for queried days', type=int)
+    parser.add_argument('-d', required=False, default=False, type=bool)
     return parser.parse_args()  # user args by default
