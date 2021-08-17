@@ -22,6 +22,6 @@ requests==2.22.0
 scipy==1.4.1
 six==1.12.0
 soupsieve==1.9.2
-urllib3==1.24.2
+urllib3==1.26.5
 win-inet-pton==1.1.0
 wincertstore==0.2
